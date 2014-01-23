@@ -18,15 +18,17 @@ import java.util.*;
 
 public class EuropeanaRecordFactory extends RecordFactory {
 //    private static Log logger = LogFactory.getLog(EuropeanaRecordFactory.class);
+    String repositoryId = "europeana.eu"; // may be moved in property
     public EuropeanaRecordFactory(Properties properties) {
         super(properties);
     }
 
     @Override
     public String fromOAIIdentifier(String identifier) {
-        // oai:ds:id-> /ds/id
+        // oai:europeana.eu:ds:id-> /ds/id
         StringTokenizer tokenizer = new StringTokenizer(identifier,  ":");
         tokenizer.nextToken(); // skip "oai:"
+        tokenizer.nextToken(); // skip "europeana.eu:"
         return "/" + tokenizer.nextToken() + "/" + tokenizer.nextToken();
     }
 
@@ -40,11 +42,11 @@ public class EuropeanaRecordFactory extends RecordFactory {
         String localIdentifier = asRecord(nativeItem).getLocalId();
 
         if (localIdentifier != null) {
-            // oai:ds:id-> /ds/id
+            // oai:europeana.eu:ds:id-> /ds/id
             StringTokenizer tokenizer = new StringTokenizer(localIdentifier, "/");
 //            tokenizer.nextToken();// no need to skip leading slash (strange logic)
 
-            return "oai:" + tokenizer.nextToken() + ":" + tokenizer.nextToken() ;
+            return "oai:" + repositoryId + ":" + tokenizer.nextToken() + ":" + tokenizer.nextToken() ;
         }
 
         return null;
