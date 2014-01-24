@@ -4,6 +4,7 @@
     <groupId>org.oclc.oai</groupId>
     <artifactId>oaicat</artifactId>
     <version>1.5.61</version>
+    <packaging>war</packaging>
     <name>OAICat</name>
     <organization>
         <name>KEEP SOLUTIONS</name>
@@ -56,8 +57,7 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- explicitly define maven-deploy-plugin after other to force exec
-                    order -->
+                <!-- explicitly define maven-deploy-plugin after other to force exec order -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>2.6</version>
@@ -104,6 +104,11 @@
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
             <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.3</version>
         </dependency>
     </dependencies>
 </project>
