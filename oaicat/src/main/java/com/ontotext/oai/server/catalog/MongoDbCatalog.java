@@ -5,11 +5,10 @@ import ORG.oclc.oai.server.catalog.RecordFactory;
 import ORG.oclc.oai.server.verb.*;
 import com.mongodb.DBCursor;
 import com.ontotext.oai.RecordInfo;
+import com.ontotext.oai.ResumptionToken;
 import com.ontotext.oai.europeana.DataSet;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CommonDb;
-import com.ontotext.oai.europeana.db.RegistryRecordIterator;
-import com.ontotext.oai.util.CounterAdapterIterator;
 import com.ontotext.oai.util.DateConverter;
 import com.ontotext.oai.util.SimpleMap;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -17,6 +16,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,7 +26,8 @@ import java.util.*;
  */
 public class MongoDbCatalog extends AbstractCatalog {
     private CommonDb db;
-//    private Map<String, ResumptionToken> resumptionMap = new ConcurrentHashMap<String, ResumptionToken>();
+    private Map<String, ResumptionToken> resumptionMap = new ConcurrentHashMap<String, ResumptionToken>();
+    private long id_inc = 0;
     private final int recordsPerPage;
     private final int setsPerPage;
 //    private DateTimeFormatter dateTimeFormatter = new DateConverter();
@@ -76,30 +77,82 @@ public class MongoDbCatalog extends AbstractCatalog {
             throw new BadArgumentException();
         }
         DBCursor dbCursor = db.listRecords(dateFrom, dateUntil, set);
-        return listIdentifiers(dbCursor);
+        ResumptionToken token = new ResumptionToken(dbCursor, id_inc++);
+        ResumptionToken oldToken = resumptionMap.get(token.getId());
+        if (oldToken != null) {
+            token = oldToken;
+        } else {
+            resumptionMap.put(token.getId(),  token);
+        }
+        return listIdentifiers(token);
     }
 
     @Override
     public Map listIdentifiers(String resumptionToken) throws BadResumptionTokenException, OAIInternalServerError {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        ResumptionToken token = resumptionMap.get(resumptionToken);
+        if(token == null) {
+            throw new BadResumptionTokenException();
+        }
+
+        return listIdentifiers(token);
     }
 
-    private Map<String, Object> listIdentifiers(DBCursor dbCursor) {
-//        int numRecords = dbCursor.size();
-        Iterator<RegistryInfo> dbIterator = new RegistryRecordIterator(dbCursor);
-        HeaderIterator headers = new HeaderIterator(dbIterator);
-        CounterAdapterIterator<String> limitedHeaders = new CounterAdapterIterator<String>(headers,  10);
-        IdentifierIterator identifiers = new IdentifierIterator(dbIterator);
-        CounterAdapterIterator<String> limitedIdentifiers = new CounterAdapterIterator<String>(identifiers,  10);
-        String[] keys = new String[]{"headers", "identifiers"};
-        Object[] vals = new Object[] { limitedHeaders, limitedIdentifiers };
-        Map<String, Object> map = new SimpleMap<String, Object>(keys, vals);
+    public Map listIdentifiers(ResumptionToken token) {
+        List<String> headers = new ArrayList<String>(recordsPerPage);
+        List<String> identifiers = new ArrayList<String>(recordsPerPage);
+        Map<String, Object> m = listIdentifiers(token,  headers,  identifiers);
+        String[] keys = new String[]{"headers", "identifiers", "resumptionMap"};
+        Object[] vals = new Object[] { headers.iterator(), identifiers.iterator(), m};
+        return new SimpleMap(keys,  vals);
+    }
+
+    private Map<String, Object> listIdentifiers(ResumptionToken token, List<String> headers, List<String> identifiers) {
+        Map<String, Object> m = createResumptionMap(token);
+        RecordFactory rf = getRecordFactory();
+        for (int i = 0; i < recordsPerPage; ++i) {
+            if (token.hasNext()) {
+                RegistryInfo ri = token.next();
+                String header = registryInfo2Xml(ri);
+                headers.add(header);
+                String identifier = rf.getOAIIdentifier(new RecordInfo(null, ri));
+                identifiers.add(identifier);
+            } else {
+                break;
+            }
+        }
+
+        if (!token.hasNext()) {
+            token.close();
+            resumptionMap.remove(token.getId());
+            m = null;
+        }
+
+        return m;
+    }
+
+    Map<String, Object> createResumptionMap(ResumptionToken token) {
+        String []keys = {"expirationDate", "cursor", "resumptionToken"};
+        String[] values = {dateConverter.toIsoDate(token.getExpirationDate()), Long.toString(token.getCursor()), token.getId()};
+        SimpleMap<String, Object> map = new SimpleMap<String, Object>(keys,  values);
+        return map;
+    }
+
+//    private Map<String, Object> listIdentifiers(DBCursor dbCursor) {
+//
+//        Iterator<RegistryInfo> dbIterator = new RegistryRecordIterator(dbCursor);
+//        HeaderIterator headers = new HeaderIterator(dbIterator);
+//        CounterAdapterIterator<String> limitedHeaders = new CounterAdapterIterator<String>(headers,  10);
+//        IdentifierIterator identifiers = new IdentifierIterator(dbIterator);
+//        CounterAdapterIterator<String> limitedIdentifiers = new CounterAdapterIterator<String>(identifiers,  10);
+//        String[] keys = new String[]{"headers", "identifiers"};
+//        Object[] vals = new Object[] { limitedHeaders, limitedIdentifiers };
+//        Map<String, Object> map = new SimpleMap<String, Object>(keys, vals);
 
 //        HashMap<String, Object> map = new HashMap<String, Object>(5);
 //        map.put("headers", limitedHeaders);
 
-        return map;
-    }
+//        return map;
+//    }
 
     @Override
     public String getRecord(String identifier, String metadataPrefix) throws IdDoesNotExistException, CannotDisseminateFormatException, OAIInternalServerError {
