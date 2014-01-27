@@ -6,6 +6,7 @@ import com.mongodb.DBObject;
 
 import java.util.Date;
 
+import static com.ontotext.oai.europeana.db.RegistryFields.KEY_COLLECTION;
 import static com.ontotext.oai.europeana.db.RegistryFields.KEY_DATE;
 import static com.ontotext.oai.europeana.db.RegistryFields.KEY_RECORD_ID;
 
@@ -20,9 +21,12 @@ import static com.ontotext.oai.europeana.db.RegistryFields.KEY_RECORD_ID;
 public class MongoUtil {
 
 
-    public DBObject queryDateRange(Date begin, Date end) {
+    public DBObject queryDateRange(String setId, Date begin, Date end) {
         DBObject query = new BasicDBObject();
         query.put(KEY_DATE,  BasicDBObjectBuilder.start("$gte", begin).add("$lt", end).get());
+        if (setId != null) {
+            query.put(KEY_COLLECTION, setId);
+        }
         return query;
     }
 
@@ -32,9 +36,16 @@ public class MongoUtil {
         return query;
     }
 
-//    public DBObject queryListSets() {
-//        DBObject query = BasicDBObjectBuilder.start("distinct", "EuropeanaIdRegistry").add("key", KEY_COLLECTION).get();
-//        System.out.println(query);
-//        return query;
-//    }
+    public DBObject queryIndexDate() {
+        DBObject query = new BasicDBObject();
+        query.put(KEY_DATE, 1);
+        return query;
+    }
+
+    public DBObject queryIndexSetDate() {
+        DBObject query = new BasicDBObject();
+        query.put(KEY_COLLECTION, 1);
+        query.put(KEY_DATE, 1);
+        return query;
+    }
 }

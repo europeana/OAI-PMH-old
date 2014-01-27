@@ -29,6 +29,8 @@ public class EuropeanaRegistry {
             mongoDb = mongoClient.getDB(dbName);
             registry = mongoDb.getCollection(registryName);
             registry.setObjectClass(RegistryRecord.class);
+            registry.ensureIndex(mongoUtil.queryIndexDate());
+            registry.ensureIndex(mongoUtil.queryIndexSetDate());
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -49,6 +51,10 @@ public class EuropeanaRegistry {
         }
 
         return registryInfo;
+    }
+
+    public DBCursor listRecords(Date from, Date until, String setId) {
+        return registry.find(mongoUtil.queryDateRange(setId,  from, until));
     }
 
     public void close() {

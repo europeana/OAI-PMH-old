@@ -3,10 +3,15 @@ package com.ontotext.oai.server.catalog;
 import ORG.oclc.oai.server.catalog.AbstractCatalog;
 import ORG.oclc.oai.server.catalog.RecordFactory;
 import ORG.oclc.oai.server.verb.*;
+import com.mongodb.DBCursor;
 import com.ontotext.oai.RecordInfo;
 import com.ontotext.oai.europeana.DataSet;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CommonDb;
+import com.ontotext.oai.europeana.db.RegistryRecordIterator;
+import com.ontotext.oai.util.CounterAdapterIterator;
+import com.ontotext.oai.util.DateConverter;
+import com.ontotext.oai.util.SimpleMap;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,9 +24,14 @@ import java.util.*;
  * Time: 11:24
  */
 public class MongoDbCatalog extends AbstractCatalog {
-    CommonDb db;
+    private CommonDb db;
+//    private Map<String, ResumptionToken> resumptionMap = new ConcurrentHashMap<String, ResumptionToken>();
     private final int recordsPerPage;
     private final int setsPerPage;
+//    private DateTimeFormatter dateTimeFormatter = new DateConverter();
+//    private final SimpleDateFormat dateFormatter = new SimpleDateFormat();
+    DateConverter dateConverter = new DateConverter();
+//    private final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     public MongoDbCatalog(Properties properties) {
         if (properties == null) {
@@ -37,7 +47,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     public Map listSets() throws NoSetHierarchyException, OAIInternalServerError {
         List<DataSet> europeanaCollections = db.listSets();
         Map <String, Object> m = new HashMap<String, Object>();
-        m.put("sets", europeanaCollections.iterator());
+        m.put("sets", new XmlDataSetIterator(europeanaCollections.iterator()));
 
         return m;
     }
@@ -54,12 +64,40 @@ public class MongoDbCatalog extends AbstractCatalog {
 
     @Override
     public Map listIdentifiers(String from, String until, String set, String metadataPrefix) throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException, NoSetHierarchyException, OAIInternalServerError {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+
+        Date dateFrom = null;
+        Date dateUntil = null;
+        try {
+            dateFrom = dateConverter.fromIsoDateTime(from);
+            dateUntil = dateConverter.fromIsoDateTime(until);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new BadArgumentException();
+        }
+        DBCursor dbCursor = db.listRecords(dateFrom, dateUntil, set);
+        return listIdentifiers(dbCursor);
     }
 
     @Override
     public Map listIdentifiers(String resumptionToken) throws BadResumptionTokenException, OAIInternalServerError {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    private Map<String, Object> listIdentifiers(DBCursor dbCursor) {
+//        int numRecords = dbCursor.size();
+        Iterator<RegistryInfo> dbIterator = new RegistryRecordIterator(dbCursor);
+        HeaderIterator headers = new HeaderIterator(dbIterator);
+        CounterAdapterIterator<String> limitedHeaders = new CounterAdapterIterator<String>(headers,  10);
+        IdentifierIterator identifiers = new IdentifierIterator(dbIterator);
+        CounterAdapterIterator<String> limitedIdentifiers = new CounterAdapterIterator<String>(identifiers,  10);
+        String[] keys = new String[]{"headers", "identifiers"};
+        Object[] vals = new Object[] { limitedHeaders, limitedIdentifiers };
+        Map<String, Object> map = new SimpleMap<String, Object>(keys, vals);
+
+//        HashMap<String, Object> map = new HashMap<String, Object>(5);
+//        map.put("headers", limitedHeaders);
+
+        return map;
     }
 
     @Override
@@ -92,11 +130,11 @@ public class MongoDbCatalog extends AbstractCatalog {
         return getRecordFactory().create(nativeItem, schemaURL, metadataPrefix, setSpecs, abouts);
     }
 
-    private RecordInfo getRecordInfo(String eid) {
-        String xml = removeXmlHeader(db.getRecord(eid));
-        RegistryInfo ri = db.getRegistryInfo(eid);
-        return new RecordInfo(xml, ri);
-    }
+//    private RecordInfo getRecordInfo(String eid) {
+//        String xml = removeXmlHeader(db.getRecord(eid));
+//        RegistryInfo ri = db.getRegistryInfo(eid);
+//        return new RecordInfo(xml, ri);
+//    }
 
     // remove xml prefix <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     private static String removeXmlHeader(String xml) {
@@ -114,8 +152,15 @@ public class MongoDbCatalog extends AbstractCatalog {
         oaiHandler.listSets();
     }
 
-    private static void testListIdentifiers() {
-
+    private static void testListIdentifiers(AbstractCatalog oaiHandler) throws CannotDisseminateFormatException, NoSetHierarchyException, OAIInternalServerError, BadArgumentException, NoItemsMatchException {
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.set(2013, Calendar.SEPTEMBER, 1);
+//        String from  = calendar.getTime().toString();
+//        calendar.add(Calendar.MONTH, 1);
+//        String until  = calendar.getTime().toString();
+        String from = "2013-09-01T00:00Z";
+        String until = "2013-10-01T00:00Z";
+        oaiHandler.listIdentifiers(from, until, null, "edm");
     }
 
     private static Properties loadProperties() throws IOException {
@@ -130,19 +175,121 @@ public class MongoDbCatalog extends AbstractCatalog {
         return properties;
     }
 
+    private class XmlDataSetIterator implements Iterator<String> {
+        private final Iterator<DataSet> iterator;
+        XmlDataSetIterator(Iterator<DataSet> iterator) { this.iterator = iterator; }
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+        @Override
+        public String next() {
+            return dataSet2Xml(iterator.next());
+        }
+        @Override
+        public void remove() {}
+    }
+
+    private class HeaderIterator implements Iterator<String> {
+        private final Iterator<RegistryInfo> iterator;
+
+        HeaderIterator(Iterator<RegistryInfo> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public String next() {
+            return registryInfo2Xml(iterator.next());
+        }
+
+        @Override
+        public void remove() {}
+    }
+
+    private class IdentifierIterator implements Iterator<String> {
+        private final Iterator<RegistryInfo> iterator;
+
+        IdentifierIterator(Iterator<RegistryInfo> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public String next() {
+            RegistryInfo ri = iterator.next();
+            return getRecordFactory().getOAIIdentifier(new RecordInfo(null, ri));
+        }
+
+        @Override
+        public void remove() {
+
+        }
+    }
+
+    private String dataSet2Xml(DataSet ds) {
+        RecordFactory rf = getRecordFactory();
+//        rf.createHeader();
+        StringBuilder sb = new StringBuilder(200);
+        if (ds != null) {
+            sb.append("<set>");
+            if (ds.identifier != null) {
+                sb.append("<setSpec>").append(ds.identifier).append("</setSpec>");
+            }
+            if (ds.name != null) {
+                sb.append("<setName>").append(ds.name).append("</setName>");
+            }
+            sb.append("</set>");
+        }
+
+        return  sb.toString();
+    }
+
+    private String registryInfo2Xml(RegistryInfo registryInfo) {
+        StringBuilder sb = new StringBuilder(500);
+        if (registryInfo != null) {
+            sb.append("<header>");
+            RecordFactory recordFactory = getRecordFactory();
+            RecordInfo nativeItem = new RecordInfo(null, registryInfo);
+            String id = recordFactory.getOAIIdentifier(nativeItem);
+            if (id != null) {
+                sb.append("<identifier>").append(id).append("</identifier>");
+            }
+
+            String datestamp = recordFactory.getDatestamp(nativeItem);
+            if (datestamp != null) {
+                sb.append("<datestamp>").append(datestamp).append("</datestamp>");
+            }
+
+            String setSpec = registryInfo.cid;
+            if (setSpec != null) {
+                sb.append("<setSpec>").append(setSpec).append("</setSpec>");
+            }
+            sb.append("</header>");
+        }
+
+        return sb.toString();
+    }
+
     public static void main(String[] args) throws IOException {
         Properties properties = loadProperties();
-
         AbstractCatalog oaiHandler = new MongoDbCatalog(properties);
         try {
-            testListSets(oaiHandler);
+//            testListSets(oaiHandler);
+            testListIdentifiers(oaiHandler);
 //            Map x = oaiHandler.listRecords("2011-01-01", "2013-01-01", null, "edm");
 //            String resumptionToken = (String) x.get("resumptionToken");
 //            Iterator identifiers = (Iterator) x.get("identifiers");
-        } catch (NoSetHierarchyException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (OAIInternalServerError oaiInternalServerError) {
-            oaiInternalServerError.printStackTrace();
         } finally {
             oaiHandler.close();
         }

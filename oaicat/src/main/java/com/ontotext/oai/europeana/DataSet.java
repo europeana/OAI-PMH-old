@@ -18,15 +18,4 @@ public final class DataSet {
         this.identifier = identifier;
         this.name = name;
     }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(200);
-        sb.append("<set>");
-        sb.append("<setSpec>").append(identifier).append("</setSpec>");
-        sb.append("<setName>").append(name).append("</setName>");
-        sb.append("</set>");
-
-        return sb.toString();
-    }
 }

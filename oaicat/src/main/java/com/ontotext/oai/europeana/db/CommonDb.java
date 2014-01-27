@@ -1,7 +1,10 @@
 package com.ontotext.oai.europeana.db;
 
-import com.ontotext.oai.europeana.*;
+import com.mongodb.DBCursor;
+import com.ontotext.oai.europeana.DataSet;
+import com.ontotext.oai.europeana.RegistryInfo;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -18,23 +21,26 @@ public class CommonDb {
         europeanaRegistry = new EuropeanaRegistry(properties);
     }
 
-    public void close() {
+    public synchronized void close() {
         europeanaRegistry.close();
         europeanaDb.close();
     }
 
     // EuropeanaDb methods
-    public String getRecord(String id) {
+    public synchronized String getRecord(String id) {
         return europeanaDb.getRecord(id);
     }
 
-    public List<DataSet> listSets() {
+    public synchronized List<DataSet> listSets() {
         return europeanaDb.listSets();
     }
 
     // EuropeanaRegistry methods
-    public RegistryInfo getRegistryInfo(String recordId) {
+    public synchronized RegistryInfo getRegistryInfo(String recordId) {
         return europeanaRegistry.getRegistryInfo(recordId);
     }
 
+    public DBCursor listRecords(Date from, Date until, String setId) {
+        return europeanaRegistry.listRecords(from, until, setId);
+    }
 }

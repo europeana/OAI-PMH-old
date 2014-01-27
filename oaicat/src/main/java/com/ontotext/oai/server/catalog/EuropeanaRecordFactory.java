@@ -6,6 +6,7 @@ import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
 import com.ontotext.oai.RecordInfo;
 import com.ontotext.oai.server.crosswalk.Edm2Provenance;
 import com.ontotext.oai.server.crosswalk.Edm2Rights;
+import com.ontotext.oai.util.DateConverter;
 
 import java.util.*;
 
@@ -19,6 +20,8 @@ import java.util.*;
 public class EuropeanaRecordFactory extends RecordFactory {
 //    private static Log logger = LogFactory.getLog(EuropeanaRecordFactory.class);
     String repositoryId = "europeana.eu"; // may be moved in property
+    private final DateConverter dateConverter = new DateConverter();
+
     public EuropeanaRecordFactory(Properties properties) {
         super(properties);
     }
@@ -56,7 +59,7 @@ public class EuropeanaRecordFactory extends RecordFactory {
     public String getDatestamp(Object nativeItem) {
         Date timeStamp = asRecord(nativeItem).getTimeStamp();
         if (timeStamp != null) {
-            return timeStamp.toString();
+            return dateConverter.toIsoDate(timeStamp);
         }
         return null;
     }
