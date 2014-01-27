@@ -12,6 +12,7 @@ import com.ontotext.oai.europeana.db.RegistryRecordIterator;
 import com.ontotext.oai.util.CounterAdapterIterator;
 import com.ontotext.oai.util.DateConverter;
 import com.ontotext.oai.util.SimpleMap;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -245,7 +246,8 @@ public class MongoDbCatalog extends AbstractCatalog {
                 sb.append("<setSpec>").append(ds.identifier).append("</setSpec>");
             }
             if (ds.name != null) {
-                sb.append("<setName>").append(ds.name).append("</setName>");
+                String setName = StringEscapeUtils.escapeXml(ds.name);
+                sb.append("<setName>").append(setName).append("</setName>");
             }
             sb.append("</set>");
         }
@@ -283,8 +285,8 @@ public class MongoDbCatalog extends AbstractCatalog {
         Properties properties = loadProperties();
         AbstractCatalog oaiHandler = new MongoDbCatalog(properties);
         try {
-//            testListSets(oaiHandler);
-            testListIdentifiers(oaiHandler);
+            testListSets(oaiHandler);
+//            testListIdentifiers(oaiHandler);
 //            Map x = oaiHandler.listRecords("2011-01-01", "2013-01-01", null, "edm");
 //            String resumptionToken = (String) x.get("resumptionToken");
 //            Iterator identifiers = (Iterator) x.get("identifiers");
