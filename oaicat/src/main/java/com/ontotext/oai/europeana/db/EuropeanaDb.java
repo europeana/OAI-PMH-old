@@ -130,7 +130,7 @@ public class EuropeanaDb {
 
     private String downloadRecord(String id) throws IOException {
         String url = baseUrl + "record" + id + ".rdf" +"?wskey=" + apiKey;
-        return IOUtils.toString(new URL(url));
+        return IOUtils.toString(new URL(url), "UTF-8");
     }
 
 
