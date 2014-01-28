@@ -4,7 +4,6 @@ import ORG.oclc.oai.server.crosswalk.Crosswalk;
 import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
 import com.ontotext.oai.RecordInfo;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -27,18 +26,18 @@ public class Edm2Provenance extends Crosswalk {
     @Override
     public String createMetadata(Object nativeItem) throws CannotDisseminateFormatException {
         String provenance = null;
-        if (nativeItem instanceof RecordInfo) {
-            int numItems = 0;
+        try {
+            if (nativeItem instanceof RecordInfo) {
+                int numItems = 0;
 
-            RecordInfo recordInfo = (RecordInfo) nativeItem;
-            if (recordInfo.registryInfo != null) {
-                StringBuilder sb = new StringBuilder(1000);
-                sb.append("<provenance xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/provenance" +
-                        " http://www.openarchives.org/OAI/2.0/provenance.xsd\">");
-                sb.append("<originDescription>");
-                String originalId = recordInfo.getOriginalId();
-                if (originalId != null) {
-                    try {
+                RecordInfo recordInfo = (RecordInfo) nativeItem;
+                if (recordInfo.registryInfo != null) {
+                    StringBuilder sb = new StringBuilder(1000);
+                    sb.append("<provenance xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/provenance" +
+                            " http://www.openarchives.org/OAI/2.0/provenance.xsd\">");
+                    sb.append("<originDescription>");
+                    String originalId = recordInfo.getOriginalId();
+                    if (originalId != null) {
                         URL url = new URL(originalId);
                         sb.append("<baseURL>");
                         sb.append(url.getHost());
@@ -47,19 +46,18 @@ public class Edm2Provenance extends Crosswalk {
                         sb.append(originalId);
                         sb.append("</identifier>");
                         ++numItems;
-                    } catch (MalformedURLException e) {
-                        throw new CannotDisseminateFormatException("edm");
+                    }
+
+                    sb.append("</originDescription>");
+                    sb.append("</provenance>");
+                    if (numItems != 0) {
+                        provenance = sb.toString();
                     }
                 }
 
-
-                sb.append("</originDescription>");
-                sb.append("</provenance>");
-                if (numItems != 0) {
-                    provenance = sb.toString();
-                }
             }
-
+        } catch (Exception e) {
+            provenance = null;
         }
         return provenance;
     }
