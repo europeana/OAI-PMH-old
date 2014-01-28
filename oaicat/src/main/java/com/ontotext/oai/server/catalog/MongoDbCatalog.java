@@ -30,6 +30,8 @@ public class MongoDbCatalog extends AbstractCatalog {
     private long id_inc = 0;
     private final int recordsPerPage;
     private final int setsPerPage;
+    private static final long CLEANUP_MINUTES = 1L;
+    private static final long CLEANUP_MILLISECONDS = CLEANUP_MINUTES*60L*1000L;
 //    private DateTimeFormatter dateTimeFormatter = new DateConverter();
 //    private final SimpleDateFormat dateFormatter = new SimpleDateFormat();
     DateConverter dateConverter = new DateConverter();
@@ -43,6 +45,29 @@ public class MongoDbCatalog extends AbstractCatalog {
         db = new CommonDb(properties);
         recordsPerPage = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "100"));
         setsPerPage = Integer.parseInt(properties.getProperty("MongoDbCatalog.setsPerPage", "10"));
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (resumptionMap.isEmpty()) {
+                    return;
+                }
+                System.out.println("Cleanup thread ...");
+                Date now = new Date();
+                for (Iterator<Map.Entry<String,ResumptionToken>> iterator = resumptionMap.entrySet().iterator();
+                     iterator.hasNext(); ) {
+                    Map.Entry<String, ResumptionToken> entry = iterator.next();
+                    ResumptionToken token = entry.getValue();
+                    Date expireDate = token.getExpirationDate();
+                    if (now.after(expireDate)) {
+                        System.out.println("Removing token: " + token.getId());
+                        // TODO: think about race conditions here
+                        iterator.remove();
+                        token.close();
+                    }
+                }
+            }
+        }, CLEANUP_MILLISECONDS, CLEANUP_MILLISECONDS);
     }
 
     @Override
@@ -63,6 +88,33 @@ public class MongoDbCatalog extends AbstractCatalog {
     public Vector getSchemaLocations(String identifier) throws IdDoesNotExistException, NoMetadataFormatsException, OAIInternalServerError {
         return null;  // Nothing to do. Works with the basic functionality.
     }
+
+    @Override
+    public Map listRecords(String from, String until, String set, String metadataPrefix)
+        throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException,
+        NoSetHierarchyException, OAIInternalServerError {
+        Map listRecordsMap = super.listRecords(from, until, set, metadataPrefix);
+        addResumptionMap(listRecordsMap);
+        return listRecordsMap;
+    }
+
+    @Override
+    public Map listRecords(String resumptionToken)
+    throws BadResumptionTokenException, OAIInternalServerError {
+        Map listRecordsMap = super.listRecords(resumptionToken);
+        addResumptionMap(listRecordsMap);
+        return listRecordsMap;
+    }
+
+    private void addResumptionMap(Map listRecordsMap) {
+        String resumptionToken = (String)listRecordsMap.get("resumptionToken");
+        ResumptionToken token = resumptionMap.get(resumptionToken);
+        if (token != null) {
+            Map<String, Object> m = createResumptionMap(token);
+            listRecordsMap.put("resumptionMap", m);
+        }
+    }
+
 
     @Override
     public Map listIdentifiers(String from, String until, String set, String metadataPrefix) throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException, NoSetHierarchyException, OAIInternalServerError {
@@ -101,8 +153,8 @@ public class MongoDbCatalog extends AbstractCatalog {
         List<String> headers = new ArrayList<String>(recordsPerPage);
         List<String> identifiers = new ArrayList<String>(recordsPerPage);
         Map<String, Object> m = listIdentifiers(token,  headers,  identifiers);
-        String[] keys = new String[]{"headers", "identifiers", "resumptionMap"};
-        Object[] vals = new Object[] { headers.iterator(), identifiers.iterator(), m};
+        String[] keys = new String[]{"headers", "identifiers", "resumptionMap", "resumptionToken"};
+        Object[] vals = new Object[] { headers.iterator(), identifiers.iterator(), m, token.getId()};
         return new SimpleMap(keys,  vals);
     }
 
