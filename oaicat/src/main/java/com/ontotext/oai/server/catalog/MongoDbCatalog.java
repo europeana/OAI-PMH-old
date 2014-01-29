@@ -12,6 +12,8 @@ import com.ontotext.oai.europeana.db.CommonDb;
 import com.ontotext.oai.util.DateConverter;
 import com.ontotext.oai.util.SimpleMap;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,6 +32,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     private long id_inc = 0;
     private final int recordsPerPage;
     private final int setsPerPage;
+    private final Log log = LogFactory.getLog(MongoDbCatalog.class);
     private static final long CLEANUP_MINUTES = 1L;
     private static final long CLEANUP_MILLISECONDS = CLEANUP_MINUTES*60L*1000L;
 //    private DateTimeFormatter dateTimeFormatter = new DateConverter();
@@ -49,10 +52,11 @@ public class MongoDbCatalog extends AbstractCatalog {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (resumptionMap.isEmpty()) {
+                int numTokens = resumptionMap.size();
+                if (numTokens == 0) {
                     return;
                 }
-                System.out.println("Cleanup thread ...");
+                log.debug("Cleanup thread. Num tokens: " + numTokens);
                 Date now = new Date();
                 for (Iterator<Map.Entry<String,ResumptionToken>> iterator = resumptionMap.entrySet().iterator();
                      iterator.hasNext(); ) {
@@ -60,8 +64,7 @@ public class MongoDbCatalog extends AbstractCatalog {
                     ResumptionToken token = entry.getValue();
                     Date expireDate = token.getExpirationDate();
                     if (now.after(expireDate)) {
-                        System.out.println("Removing token: " + token.getId());
-                        // TODO: think about race conditions here
+                        log.debug("Remove token: " + token.getId());
                         iterator.remove();
                         token.close();
                     }
@@ -133,8 +136,10 @@ public class MongoDbCatalog extends AbstractCatalog {
         ResumptionToken oldToken = resumptionMap.get(token.getId());
         if (oldToken != null) {
             token = oldToken;
+            log.error("Duplicate tokenId: " + token.getId());
         } else {
             resumptionMap.put(token.getId(),  token);
+            log.debug("Add token: " + token.getId());
         }
         return listIdentifiers(token);
     }

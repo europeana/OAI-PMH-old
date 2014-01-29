@@ -5,6 +5,8 @@ import com.ontotext.oai.europeana.ListProviders;
 import com.ontotext.oai.europeana.ListSets;
 import com.ontotext.oai.europeana.Provider;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ public class EuropeanaDb {
     private LocalCache cache;
     private boolean loadCache;
     private boolean saveCache;
+    private Log log = LogFactory.getLog(EuropeanaDb.class);
 
     public EuropeanaDb(Properties properties) {
         apiKey = properties.getProperty("EuropeanaDb.apiKey", "api2demo");
@@ -32,13 +35,14 @@ public class EuropeanaDb {
             cache = new LocalCache(new File(cacheDir));
             loadCache = Boolean.parseBoolean(properties.getProperty("LocalCache.loadCache", "true"));
             saveCache = Boolean.parseBoolean(properties.getProperty("LocalCache.saveCache", "true"));
+            log.info("Using local cache: " + cache);
         } else {
             cache = LocalCache.getDummyCache();
             loadCache = false;
             saveCache = false;
+            log.info("Local cache is disabled");
         }
     }
-
 
     // id: /11601/database_detail_php_ID_187548 ->
     //http://europeana.eu/api/v2/record/11601/database_detail_php_ID_187548.rdf?
@@ -122,17 +126,19 @@ public class EuropeanaDb {
     }
 
     private String downloadProviderDataSets(String providerId) throws IOException {
-//        System.out.println("Download provider data sets: " + providerId);
+        log.info("DL provider sets: " + providerId);
         String urlSets = baseUrl + "provider/" + providerId + "/datasets.json" + "?wskey=" + apiKey;
         return download(urlSets);
     }
 
     private String downloadProviders() throws IOException {
+        log.info("DL providers");
         String urlProviders = baseUrl + "providers.json" + "?wskey=" + apiKey;
         return download(urlProviders);
     }
 
     private String downloadRecord(String id) throws IOException {
+        log.info("DL record: " + id);
         String url = baseUrl + "record" + id + ".rdf" +"?wskey=" + apiKey;
         return download(url);
     }

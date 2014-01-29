@@ -2,6 +2,8 @@ package com.ontotext.oai.europeana;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -20,6 +22,7 @@ public class ListProviders extends ArrayList<Provider> {
     public int itemsCount;
     public long totalResults;
     String error;
+    private Log log = LogFactory.getLog(ListProviders.class);
 
     public ListProviders(String json) {
         if (json == null) {
@@ -31,7 +34,7 @@ public class ListProviders extends ArrayList<Provider> {
             success = (Boolean) jo.get("success");
             if (!success) {
                 error = (String) jo.get("error");
-                System.out.println(error);
+                log.error(error);
                 return;
             }
             itemsCount = ((Long)jo.get("itemsCount")).intValue();

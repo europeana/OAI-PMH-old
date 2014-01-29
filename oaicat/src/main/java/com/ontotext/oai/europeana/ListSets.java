@@ -1,5 +1,7 @@
 package com.ontotext.oai.europeana;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -15,6 +17,7 @@ public class ListSets extends ArrayList<DataSet> {
     public int itemsCount;
     public long totalResults;
     String error;
+    private Log log = LogFactory.getLog(ListSets.class);
 
     public ListSets(String json) {
         JSONParser parser = new JSONParser();
@@ -23,7 +26,7 @@ public class ListSets extends ArrayList<DataSet> {
             success = (Boolean) jo.get("success");
             if (!success) {
                 error = (String) jo.get("error");
-                System.out.println("ListSets(json). " + error);
+                log.error(error);
                 return;
             }
             itemsCount = ((Long)jo.get("itemsCount")).intValue();
