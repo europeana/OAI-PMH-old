@@ -42,7 +42,7 @@ public class EuropeanaDb {
 
     // id: /11601/database_detail_php_ID_187548 ->
     //http://europeana.eu/api/v2/record/11601/database_detail_php_ID_187548.rdf?
-    // wskey=api2demo&profile=full
+    // wskey=api2demo
     public String getRecord(String id) {
         String rdf = null;
         if (loadCache) {
@@ -117,26 +117,25 @@ public class EuropeanaDb {
         return json;
     }
 
+    private static String download(String url) throws IOException {
+        return IOUtils.toString(new URL(url), "UTF-8");
+    }
+
     private String downloadProviderDataSets(String providerId) throws IOException {
-        System.out.println("Download provider data sets: " + providerId);
+//        System.out.println("Download provider data sets: " + providerId);
         String urlSets = baseUrl + "provider/" + providerId + "/datasets.json" + "?wskey=" + apiKey;
-        return IOUtils.toString(new URL(urlSets), "UTF-8");
+        return download(urlSets);
     }
 
     private String downloadProviders() throws IOException {
         String urlProviders = baseUrl + "providers.json" + "?wskey=" + apiKey;
-        return IOUtils.toString(new URL(urlProviders), "UTF-8");
+        return download(urlProviders);
     }
 
     private String downloadRecord(String id) throws IOException {
         String url = baseUrl + "record" + id + ".rdf" +"?wskey=" + apiKey;
-        return IOUtils.toString(new URL(url), "UTF-8");
+        return download(url);
     }
-
-
-//    public String getSetId(String recordId) {
-//        return parseCid(recordId);
-//    }
 
     public void close() {
         // nothing to do
