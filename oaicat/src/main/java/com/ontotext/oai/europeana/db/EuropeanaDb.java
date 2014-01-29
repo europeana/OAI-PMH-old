@@ -35,7 +35,7 @@ public class EuropeanaDb {
             cache = new LocalCache(new File(cacheDir));
             loadCache = Boolean.parseBoolean(properties.getProperty("LocalCache.loadCache", "true"));
             saveCache = Boolean.parseBoolean(properties.getProperty("LocalCache.saveCache", "true"));
-            log.info("Using local cache: " + cache);
+            log.info("Using local cache: " + cacheDir);
         } else {
             cache = LocalCache.getDummyCache();
             loadCache = false;
