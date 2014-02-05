@@ -19,6 +19,8 @@
     </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <version.europeanaCorelib>2.0-SNAPSHOT</version.europeanaCorelib>
+        <version.mongoMorphia>0.99</version.mongoMorphia>
     </properties>
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -136,5 +138,35 @@
             <artifactId>joda-time</artifactId>
             <version>2.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.code.morphia</groupId>
+            <artifactId>morphia</artifactId>
+            <version>${version.mongoMorphia}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--Europeana Core Library -->
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-solr</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>releases</id>
+            <url>http://europeanalabs.eu/artifactory/repo</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>snapshots</id>
+            <url>http://europeanalabs.eu/artifactory/repo</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
 </project>
