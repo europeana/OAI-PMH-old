@@ -1,11 +1,8 @@
 package com.ontotext.oai.server.catalog;
 
 import ORG.oclc.oai.server.catalog.RecordFactory;
-import ORG.oclc.oai.server.crosswalk.Crosswalk;
 import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
 import com.ontotext.oai.RecordInfo;
-import com.ontotext.oai.server.crosswalk.Edm2Provenance;
-import com.ontotext.oai.server.crosswalk.Edm2Rights;
 import com.ontotext.oai.util.DateConverter;
 
 import java.util.*;
@@ -80,32 +77,33 @@ public class EuropeanaRecordFactory extends RecordFactory {
 
     @Override
     public Iterator getAbouts(Object nativeItem) {
-        RecordInfo recordInfo = asRecord(nativeItem);
-        List<String> abouts = new ArrayList<String>();
-        if (recordInfo != null) {
-            try {
-                Crosswalk cws[] = new Crosswalk[] {new Edm2Provenance(), new Edm2Rights()};
-                for (Crosswalk cw : cws) {
-                    String about = getAbout(recordInfo, cw);
-                    if (about != null) {
-                        abouts.add(about);
-                    }
-                }
-            } catch (CannotDisseminateFormatException e) {
-                e.printStackTrace();
-            }
-        }
-        return abouts.iterator();
+        return null;
+//        RecordInfo recordInfo = asRecord(nativeItem);
+//        List<String> abouts = new ArrayList<String>();
+//        if (recordInfo != null) {
+//            try {
+//                Crosswalk cws[] = new Crosswalk[] {new Edm2Provenance(), new Edm2Rights()};
+//                for (Crosswalk cw : cws) {
+//                    String about = getAbout(recordInfo, cw);
+//                    if (about != null) {
+//                        abouts.add(about);
+//                    }
+//                }
+//            } catch (CannotDisseminateFormatException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return abouts.iterator();
     }
 
-    private String getAbout(RecordInfo recordInfo, Crosswalk cw) throws CannotDisseminateFormatException {
-        String about = null;
-        if (cw.isAvailableFor(recordInfo)) {
-            about = cw.createMetadata(recordInfo);
-        }
-
-        return about;
-    }
+//    private String getAbout(RecordInfo recordInfo, Crosswalk cw) throws CannotDisseminateFormatException {
+//        String about = null;
+//        if (cw.isAvailableFor(recordInfo)) {
+//            about = cw.createMetadata(recordInfo);
+//        }
+//
+//        return about;
+//    }
 
     private static RecordInfo asRecord(Object nativeItem) throws IllegalArgumentException {
         if (nativeItem instanceof RecordInfo) {
