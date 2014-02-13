@@ -14,21 +14,29 @@ import java.util.Properties;
 public class CommonDb {
     private final EuropeanaDb europeanaDb;
     private final EuropeanaRegistry europeanaRegistry;
+    private final RecordsProvider recordsDb;
 
     // common methods
     public CommonDb(Properties properties) {
         europeanaDb = new EuropeanaDb(properties);
         europeanaRegistry = new EuropeanaRegistry(properties);
+        boolean disabledRecordsDb = Boolean.parseBoolean(properties.getProperty("RecordsDb.disabled", "false"));
+        if (disabledRecordsDb) {
+            recordsDb = europeanaDb; // for development purposes only
+        } else {
+            recordsDb = new RecordsDb(properties);
+        }
     }
 
     public synchronized void close() {
+        recordsDb.close();
         europeanaRegistry.close();
         europeanaDb.close();
     }
 
     // EuropeanaDb methods
     public synchronized String getRecord(String id) {
-        return europeanaDb.getRecord(id);
+        return recordsDb.getRecord(id);
     }
 
     public synchronized List<DataSet> listSets() {

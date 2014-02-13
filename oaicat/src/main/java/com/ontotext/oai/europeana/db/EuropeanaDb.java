@@ -18,7 +18,7 @@ import java.util.Properties;
 /**
  * Created by Simo on 13-12-12.
  */
-public class EuropeanaDb {
+public class EuropeanaDb implements RecordsProvider {
     private String apiKey;
     private String baseUrl;
 
