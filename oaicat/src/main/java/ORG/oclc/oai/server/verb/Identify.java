@@ -10,18 +10,13 @@
  */
 package ORG.oclc.oai.server.verb;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Properties;
+import ORG.oclc.oai.server.catalog.AbstractCatalog;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-
-import ORG.oclc.oai.server.catalog.AbstractCatalog;
+import java.util.*;
 //import org.xml.sax.SAXException;
 
 /**
@@ -131,18 +126,8 @@ public class Identify extends ServerVerb {
                 sb.append("</oai-identifier>");
                 sb.append("</description>");
             }
-            String propertyPrefix = "Identify.description";
-            Enumeration propNames = properties.propertyNames();
-            while (propNames.hasMoreElements()) {
-                String propertyName = (String)propNames.nextElement();
-                if (propertyName.startsWith(propertyPrefix)) {
-                    sb.append((String)properties.get(propertyName));
-                    sb.append("\n");
-                }
-            }
-            sb.append("<description><toolkit xsi:schemaLocation=\"http://oai.dlib.vt.edu/OAI/metadata/toolkit http://alcme.oclc.org/oaicat/toolkit.xsd\" xmlns=\"http://oai.dlib.vt.edu/OAI/metadata/toolkit\"><title>OCLC's OAICat Repository Framework</title><author><name>Jeffrey A. Young</name><email>jyoung@oclc.org</email><institution>OCLC</institution></author><version>");
-            sb.append(version);
-            sb.append("</version><toolkitIcon>http://alcme.oclc.org/oaicat/oaicat_icon.gif</toolkitIcon><URL>http://www.oclc.org/research/software/oai/cat.shtm</URL></toolkit></description>");
+            addDescriptionProperties(properties, sb);
+//            addAuthorDescription(sb, version);
             String descriptions = abstractCatalog.getDescriptions();
             if (descriptions != null) {
                 sb.append(descriptions);
@@ -151,5 +136,22 @@ public class Identify extends ServerVerb {
         }
         sb.append("</OAI-PMH>");
         return render(response, "text/xml; charset=UTF-8", sb.toString(), serverTransformer);
+    }
+
+    private static final int MAX_DESCRIPTIONS = 100;
+    private static void addDescriptionProperties(Properties properties, StringBuffer sb) {
+        for (int i = 1; i <= MAX_DESCRIPTIONS; ++i) {
+            String desc = properties.getProperty("Identify.description." + i);
+            if (desc == null) {
+                break;
+            }
+            sb.append(desc).append("\n");
+        }
+    }
+
+    private static void addAuthorDescription(StringBuffer sb, String version) {
+        sb.append("<description><toolkit xsi:schemaLocation=\"http://oai.dlib.vt.edu/OAI/metadata/toolkit http://alcme.oclc.org/oaicat/toolkit.xsd\" xmlns=\"http://oai.dlib.vt.edu/OAI/metadata/toolkit\"><title>OCLC's OAICat Repository Framework</title><author><name>Jeffrey A. Young</name><email>jyoung@oclc.org</email><institution>OCLC</institution></author><version>");
+        sb.append(version);
+        sb.append("</version><toolkitIcon>http://alcme.oclc.org/oaicat/oaicat_icon.gif</toolkitIcon><URL>http://www.oclc.org/research/software/oai/cat.shtm</URL></toolkit></description>");
     }
 }
