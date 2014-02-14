@@ -5,7 +5,10 @@ import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.util.DateConverter;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Properties;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,20 +19,23 @@ import java.util.*;
 
 public class EuropeanaRecordFactory extends RecordFactory {
 //    private static Log logger = LogFactory.getLog(EuropeanaRecordFactory.class);
-    String repositoryId = "europeana.eu"; // may be moved in property
+    private final String baseUrl;
     private final DateConverter dateConverter = new DateConverter();
 
     public EuropeanaRecordFactory(Properties properties) {
         super(properties);
+        baseUrl = properties.getProperty("EuropeanaRecordFactory.baseUrl", "http://data.europeana.eu/item");
+
     }
 
     @Override
     public String fromOAIIdentifier(String identifier) {
-        // oai:europeana.eu:ds:id-> /ds/id
-        StringTokenizer tokenizer = new StringTokenizer(identifier,  ":");
-        tokenizer.nextToken(); // skip "oai:"
-        tokenizer.nextToken(); // skip "europeana.eu:"
-        return "/" + tokenizer.nextToken() + "/" + tokenizer.nextToken();
+        if (identifier.length() < baseUrl.length()) {
+            return ""; // not sure what to return but empty string looks fine
+        }
+
+        // not sure if it's a problem to recognize records with different prefix.
+        return identifier.substring(baseUrl.length());
     }
 
     @Override
@@ -40,16 +46,7 @@ public class EuropeanaRecordFactory extends RecordFactory {
     @Override
     public String getOAIIdentifier(Object nativeItem) {
         String localIdentifier = asRecord(nativeItem).eid;
-
-        if (localIdentifier != null) {
-            // oai:europeana.eu:ds:id-> /ds/id
-            StringTokenizer tokenizer = new StringTokenizer(localIdentifier, "/");
-//            tokenizer.nextToken();// no need to skip leading slash (strange logic)
-
-            return "oai:" + repositoryId + ":" + tokenizer.nextToken() + ":" + tokenizer.nextToken() ;
-        }
-
-        return null;
+        return baseUrl + localIdentifier;
     }
 
     @Override

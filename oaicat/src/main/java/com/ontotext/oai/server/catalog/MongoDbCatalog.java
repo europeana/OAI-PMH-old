@@ -213,12 +213,17 @@ public class MongoDbCatalog extends AbstractCatalog {
 
     @Override
     public String getRecord(String identifier, String metadataPrefix) throws IdDoesNotExistException, CannotDisseminateFormatException, OAIInternalServerError {
+        String record = null;
         RecordFactory rf = getRecordFactory();
         String localIdentifier = rf.fromOAIIdentifier(identifier);
         RegistryInfo registryInfo = db.getRegistryInfo(localIdentifier);
-        String xml = removeXmlHeader(db.getRecord(localIdentifier));
-        RecordInfo recordInfo = new RecordInfo(xml, registryInfo);
-        return constructRecord(recordInfo, metadataPrefix);
+        if (registryInfo != null) {
+            String xml = removeXmlHeader(db.getRecord(localIdentifier));
+            RecordInfo recordInfo = new RecordInfo(xml, registryInfo);
+            record = constructRecord(recordInfo, metadataPrefix);
+        }
+
+        return record;
     }
 
     @Override
