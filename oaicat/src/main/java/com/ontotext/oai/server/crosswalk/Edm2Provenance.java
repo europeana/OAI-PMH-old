@@ -2,7 +2,7 @@ package com.ontotext.oai.server.crosswalk;
 
 import ORG.oclc.oai.server.crosswalk.Crosswalk;
 import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
-import com.ontotext.oai.RecordInfo;
+import com.ontotext.oai.europeana.RegistryInfo;
 
 import java.net.URL;
 
@@ -17,7 +17,7 @@ public class Edm2Provenance extends Crosswalk {
 
     @Override
     public boolean isAvailableFor(Object nativeItem) {
-        if (nativeItem instanceof RecordInfo) {
+        if (nativeItem instanceof RegistryInfo) {
             return true;
         }
         return false;
@@ -27,34 +27,31 @@ public class Edm2Provenance extends Crosswalk {
     public String createMetadata(Object nativeItem) throws CannotDisseminateFormatException {
         String provenance = null;
         try {
-            if (nativeItem instanceof RecordInfo) {
+            if (nativeItem instanceof RegistryInfo) {
                 int numItems = 0;
 
-                RecordInfo recordInfo = (RecordInfo) nativeItem;
-                if (recordInfo.registryInfo != null) {
-                    StringBuilder sb = new StringBuilder(1000);
-                    sb.append("<provenance xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/provenance" +
-                            " http://www.openarchives.org/OAI/2.0/provenance.xsd\">");
-                    sb.append("<originDescription>");
-                    String originalId = recordInfo.getOriginalId();
-                    if (originalId != null) {
-                        URL url = new URL(originalId);
-                        sb.append("<baseURL>");
-                        sb.append(url.getHost());
-                        sb.append("</baseURL>");
-                        sb.append("<identifier>");
-                        sb.append(originalId);
-                        sb.append("</identifier>");
-                        ++numItems;
-                    }
-
-                    sb.append("</originDescription>");
-                    sb.append("</provenance>");
-                    if (numItems != 0) {
-                        provenance = sb.toString();
-                    }
+                RegistryInfo registryInfo = (RegistryInfo) nativeItem;
+                StringBuilder sb = new StringBuilder(1000);
+                sb.append("<provenance xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/provenance" +
+                        " http://www.openarchives.org/OAI/2.0/provenance.xsd\">");
+                sb.append("<originDescription>");
+                String originalId = registryInfo.orig;
+                if (originalId != null) {
+                    URL url = new URL(originalId);
+                    sb.append("<baseURL>");
+                    sb.append(url.getHost());
+                    sb.append("</baseURL>");
+                    sb.append("<identifier>");
+                    sb.append(originalId);
+                    sb.append("</identifier>");
+                    ++numItems;
                 }
 
+                sb.append("</originDescription>");
+                sb.append("</provenance>");
+                if (numItems != 0) {
+                    provenance = sb.toString();
+                }
             }
         } catch (Exception e) {
             provenance = null;

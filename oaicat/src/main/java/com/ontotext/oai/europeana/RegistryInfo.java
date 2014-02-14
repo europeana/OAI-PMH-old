@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * Created by Simo on 14-1-9.
  */
-public final class RegistryInfo {
+public class RegistryInfo {
     public final String cid;
     public final String eid;
     public final Date last_checked;
@@ -19,19 +19,10 @@ public final class RegistryInfo {
         this.orig = orig;
     }
 
-//    public final String getLocalId() {
-//        return eid;
-//    }
-//
-//    public final String getDataSetId() {
-//        return cid;
-//    }
-//
-//    public final Date getTimeStamp() {
-//        return last_checked;
-//    }
-//
-//    public final boolean isDeleted() {
-//        return deleted;
-//    }
+    public RegistryInfo(RegistryInfo rhs) {
+        this.eid = rhs.eid;
+        this.cid = rhs.cid;
+        this.last_checked = rhs.last_checked;
+        this.orig = rhs.orig;
+    }
 }

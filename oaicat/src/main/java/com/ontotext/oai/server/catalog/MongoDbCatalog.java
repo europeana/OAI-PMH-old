@@ -171,7 +171,7 @@ public class MongoDbCatalog extends AbstractCatalog {
                 RegistryInfo ri = token.next();
                 String header = registryInfo2Xml(ri);
                 headers.add(header);
-                String identifier = rf.getOAIIdentifier(new RecordInfo(null, ri));
+                String identifier = rf.getOAIIdentifier(ri);
                 identifiers.add(identifier);
             } else {
                 break;
@@ -240,12 +240,6 @@ public class MongoDbCatalog extends AbstractCatalog {
         }
         return getRecordFactory().create(nativeItem, schemaURL, metadataPrefix, setSpecs, abouts);
     }
-
-//    private RecordInfo getRecordInfo(String eid) {
-//        String xml = removeXmlHeader(db.getRecord(eid));
-//        RegistryInfo ri = db.getRegistryInfo(eid);
-//        return new RecordInfo(xml, ri);
-//    }
 
     // remove xml prefix <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     private static String removeXmlHeader(String xml) {
@@ -337,7 +331,7 @@ public class MongoDbCatalog extends AbstractCatalog {
         @Override
         public String next() {
             RegistryInfo ri = iterator.next();
-            return getRecordFactory().getOAIIdentifier(new RecordInfo(null, ri));
+            return getRecordFactory().getOAIIdentifier(ri);
         }
 
         @Override
@@ -370,13 +364,12 @@ public class MongoDbCatalog extends AbstractCatalog {
         if (registryInfo != null) {
             sb.append("<header>");
             RecordFactory recordFactory = getRecordFactory();
-            RecordInfo nativeItem = new RecordInfo(null, registryInfo);
-            String id = recordFactory.getOAIIdentifier(nativeItem);
+            String id = recordFactory.getOAIIdentifier(registryInfo);
             if (id != null) {
                 sb.append("<identifier>").append(id).append("</identifier>");
             }
 
-            String datestamp = recordFactory.getDatestamp(nativeItem);
+            String datestamp = recordFactory.getDatestamp(registryInfo);
             if (datestamp != null) {
                 sb.append("<datestamp>").append(datestamp).append("</datestamp>");
             }

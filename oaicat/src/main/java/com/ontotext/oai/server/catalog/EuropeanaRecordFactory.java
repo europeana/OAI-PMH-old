@@ -2,7 +2,7 @@ package com.ontotext.oai.server.catalog;
 
 import ORG.oclc.oai.server.catalog.RecordFactory;
 import ORG.oclc.oai.server.verb.CannotDisseminateFormatException;
-import com.ontotext.oai.RecordInfo;
+import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.util.DateConverter;
 
 import java.util.*;
@@ -39,7 +39,7 @@ public class EuropeanaRecordFactory extends RecordFactory {
 
     @Override
     public String getOAIIdentifier(Object nativeItem) {
-        String localIdentifier = asRecord(nativeItem).getLocalId();
+        String localIdentifier = asRecord(nativeItem).eid;
 
         if (localIdentifier != null) {
             // oai:europeana.eu:ds:id-> /ds/id
@@ -54,7 +54,7 @@ public class EuropeanaRecordFactory extends RecordFactory {
 
     @Override
     public String getDatestamp(Object nativeItem) {
-        Date timeStamp = asRecord(nativeItem).getTimeStamp();
+        Date timeStamp = asRecord(nativeItem).last_checked;
         if (timeStamp != null) {
             return dateConverter.toIsoDate(timeStamp);
         }
@@ -63,7 +63,7 @@ public class EuropeanaRecordFactory extends RecordFactory {
 
     @Override
     public Iterator getSetSpecs(Object nativeItem) throws IllegalArgumentException {
-        String setSpec = asRecord(nativeItem).getSetId();
+        String setSpec = asRecord(nativeItem).cid;
         if (setSpec != null) {
             return Arrays.asList(new String[] {setSpec}).iterator();
         }
@@ -72,42 +72,17 @@ public class EuropeanaRecordFactory extends RecordFactory {
 
     @Override
     public boolean isDeleted(Object nativeItem) {
-        return asRecord(nativeItem).isDeleted();
+        return asRecord(nativeItem).deleted;
     }
 
     @Override
     public Iterator getAbouts(Object nativeItem) {
         return null;
-//        RecordInfo recordInfo = asRecord(nativeItem);
-//        List<String> abouts = new ArrayList<String>();
-//        if (recordInfo != null) {
-//            try {
-//                Crosswalk cws[] = new Crosswalk[] {new Edm2Provenance(), new Edm2Rights()};
-//                for (Crosswalk cw : cws) {
-//                    String about = getAbout(recordInfo, cw);
-//                    if (about != null) {
-//                        abouts.add(about);
-//                    }
-//                }
-//            } catch (CannotDisseminateFormatException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        return abouts.iterator();
     }
 
-//    private String getAbout(RecordInfo recordInfo, Crosswalk cw) throws CannotDisseminateFormatException {
-//        String about = null;
-//        if (cw.isAvailableFor(recordInfo)) {
-//            about = cw.createMetadata(recordInfo);
-//        }
-//
-//        return about;
-//    }
-
-    private static RecordInfo asRecord(Object nativeItem) throws IllegalArgumentException {
-        if (nativeItem instanceof RecordInfo) {
-            return (RecordInfo) nativeItem;
+    private static RegistryInfo asRecord(Object nativeItem) throws IllegalArgumentException {
+        if (nativeItem instanceof RegistryInfo) {
+            return (RegistryInfo) nativeItem;
         }
 
         throw new IllegalArgumentException();
