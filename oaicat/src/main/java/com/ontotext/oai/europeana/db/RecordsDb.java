@@ -3,12 +3,12 @@ package com.ontotext.oai.europeana.db;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.server.EdmMongoServer;
 import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.solr.utils.EdmUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import java.net.UnknownHostException;
 import java.util.Properties;
 
 /**
@@ -16,6 +16,7 @@ import java.util.Properties;
  */
 public class RecordsDb implements RecordsProvider {
     private EdmMongoServer edmServer;
+    private Log log = LogFactory.getLog(RecordsDb.class);
 
     public RecordsDb(Properties properties) {
         String host = properties.getProperty("RecordsDb.host", "localhost");
@@ -27,24 +28,26 @@ public class RecordsDb implements RecordsProvider {
         try {
             Mongo mongo = new MongoClient(host, port);
             edmServer = new EdmMongoServerImpl(mongo, databaseName, username, password);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (MongoDBException e) {
-            e.printStackTrace();
+            log.info("Using RecordsDb at " + host + ":" + port);
+        } catch (Exception e) {
+            log.error(e);
         }
     }
     // id: /11601/database_detail_php_ID_187548 ->
     // http://europeana.eu/api/v2/record/11601/database_detail_php_ID_187548.rdf?wskey=api2demo
     public String getRecord(String id) {
+//        log.info("getRecord(" + id + ")");
         String rdf = null;
         try {
             FullBeanImpl fullBean = (FullBeanImpl) edmServer.getFullBean(id);
             if (fullBean != null) {
                 rdf = EdmUtils.toEDM(fullBean, false);
+            } else {
+                log.error("FullBean is null!");
             }
 
-        } catch (MongoDBException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error(e);
         }
 
         return rdf;
