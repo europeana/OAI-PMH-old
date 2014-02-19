@@ -64,7 +64,7 @@ public class MongoDbCatalog extends AbstractCatalog {
                     ResumptionToken token = entry.getValue();
                     Date expireDate = token.getExpirationDate();
                     if (now.after(expireDate)) {
-                        log.debug("Remove token: " + token.getId());
+                        log.info("Remove token: " + token.getId());
                         iterator.remove();
                         token.close();
                     }
@@ -94,8 +94,9 @@ public class MongoDbCatalog extends AbstractCatalog {
 
     @Override
     public Map listRecords(String from, String until, String set, String metadataPrefix)
-        throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException,
-        NoSetHierarchyException, OAIInternalServerError {
+            throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException,
+            NoSetHierarchyException, OAIInternalServerError {
+//        log.info("listRecords4(" + from + ", " + until + ", " + set + ", " + metadataPrefix + ")");
         Map listRecordsMap = super.listRecords(from, until, set, metadataPrefix);
         addResumptionMap(listRecordsMap);
         return listRecordsMap;
@@ -103,7 +104,8 @@ public class MongoDbCatalog extends AbstractCatalog {
 
     @Override
     public Map listRecords(String resumptionToken)
-    throws BadResumptionTokenException, OAIInternalServerError {
+            throws BadResumptionTokenException, OAIInternalServerError {
+//        log.info("listRecords1(" + resumptionToken + ")");
         Map listRecordsMap = super.listRecords(resumptionToken);
         addResumptionMap(listRecordsMap);
         return listRecordsMap;
@@ -128,7 +130,7 @@ public class MongoDbCatalog extends AbstractCatalog {
             dateFrom = dateConverter.fromIsoDateTime(from);
             dateUntil = dateConverter.fromIsoDateTime(until);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
             throw new BadArgumentException();
         }
         DBCursor dbCursor = db.listRecords(dateFrom, dateUntil, set);
@@ -139,7 +141,7 @@ public class MongoDbCatalog extends AbstractCatalog {
             log.error("Duplicate tokenId: " + token.getId());
         } else {
             resumptionMap.put(token.getId(),  token);
-            log.debug("Add token: " + token.getId());
+            log.info("Add token: " + token.getId());
         }
         return listIdentifiers(token);
     }
@@ -148,6 +150,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     public Map listIdentifiers(String resumptionToken) throws BadResumptionTokenException, OAIInternalServerError {
         ResumptionToken token = resumptionMap.get(resumptionToken);
         if(token == null) {
+            log.error("Unknown resumption token");
             throw new BadResumptionTokenException();
         }
 
@@ -179,8 +182,9 @@ public class MongoDbCatalog extends AbstractCatalog {
         }
 
         if (!token.hasNext()) {
-            token.close();
-            resumptionMap.remove(token.getId());
+//            resumptionMap.remove(token.getId());
+//            log.info("Remove exhausted token: " + token.getId());
+//            token.close(); //
             m = null;
         }
 
@@ -222,6 +226,14 @@ public class MongoDbCatalog extends AbstractCatalog {
             RecordInfo recordInfo = new RecordInfo(xml, registryInfo);
             record = constructRecord(recordInfo, metadataPrefix);
         }
+//        else {
+//            String fullXml = db.getRecord(localIdentifier);
+//            if (fullXml != null) {
+//                log.warn("Record exists, but no registry entry: " + localIdentifier);
+//            } else {
+//                log.warn("No registry entry for record: " + localIdentifier);
+//            }
+//        }
 
         return record;
     }
