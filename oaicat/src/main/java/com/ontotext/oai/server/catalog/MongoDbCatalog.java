@@ -40,6 +40,8 @@ public class MongoDbCatalog extends AbstractCatalog {
     DateConverter dateConverter = new DateConverter();
 //    private final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+    private boolean debug;
+
     public MongoDbCatalog(Properties properties) {
         if (properties == null) {
             properties = new Properties(); // TODO: log missing file and using defaults
@@ -48,6 +50,7 @@ public class MongoDbCatalog extends AbstractCatalog {
         db = new CommonDb(properties);
         recordsPerPage = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "100"));
         setsPerPage = Integer.parseInt(properties.getProperty("MongoDbCatalog.setsPerPage", "10"));
+        debug = Boolean.parseBoolean(properties.getProperty("MongoDbCatalog.debug", "false"));
         Timer timer = new Timer(true);
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -96,7 +99,9 @@ public class MongoDbCatalog extends AbstractCatalog {
     public Map listRecords(String from, String until, String set, String metadataPrefix)
             throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException,
             NoSetHierarchyException, OAIInternalServerError {
-//        log.info("listRecords4(" + from + ", " + until + ", " + set + ", " + metadataPrefix + ")");
+        if (debug) {
+            log.info("listRecords4(" + from + ", " + until + ", " + set + ", " + metadataPrefix + ")");
+        }
         Map listRecordsMap = super.listRecords(from, until, set, metadataPrefix);
         addResumptionMap(listRecordsMap);
         return listRecordsMap;
@@ -105,7 +110,9 @@ public class MongoDbCatalog extends AbstractCatalog {
     @Override
     public Map listRecords(String resumptionToken)
             throws BadResumptionTokenException, OAIInternalServerError {
-//        log.info("listRecords1(" + resumptionToken + ")");
+        if (debug) {
+            log.info("listRecords1(" + resumptionToken + ")");
+        }
         Map listRecordsMap = super.listRecords(resumptionToken);
         addResumptionMap(listRecordsMap);
         return listRecordsMap;
@@ -226,14 +233,14 @@ public class MongoDbCatalog extends AbstractCatalog {
             RecordInfo recordInfo = new RecordInfo(xml, registryInfo);
             record = constructRecord(recordInfo, metadataPrefix);
         }
-//        else {
-//            String fullXml = db.getRecord(localIdentifier);
-//            if (fullXml != null) {
-//                log.warn("Record exists, but no registry entry: " + localIdentifier);
-//            } else {
-//                log.warn("No registry entry for record: " + localIdentifier);
-//            }
-//        }
+        else if (debug) {
+            String fullXml = db.getRecord(localIdentifier);
+            if (fullXml != null) {
+                log.warn("Record exists, but no registry entry: " + localIdentifier);
+            } else {
+                log.warn("No registry entry for record: " + localIdentifier);
+            }
+        }
 
         return record;
     }

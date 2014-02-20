@@ -17,8 +17,10 @@ import java.util.Properties;
 public class RecordsDb implements RecordsProvider {
     private EdmMongoServer edmServer;
     private Log log = LogFactory.getLog(RecordsDb.class);
+    private boolean debug;
 
     public RecordsDb(Properties properties) {
+        debug = Boolean.parseBoolean(properties.getProperty("RecordsDb.debug", "false"));
         String host = properties.getProperty("RecordsDb.host", "localhost");
         int port = Integer.parseInt(properties.getProperty("RecordsDb.port", "27017"));
         String databaseName = properties.getProperty("RecordsDb.dbname", "europeana");
@@ -36,14 +38,18 @@ public class RecordsDb implements RecordsProvider {
     // id: /11601/database_detail_php_ID_187548 ->
     // http://europeana.eu/api/v2/record/11601/database_detail_php_ID_187548.rdf?wskey=api2demo
     public String getRecord(String id) {
-//        log.info("getRecord(" + id + ")");
+        if (debug) {
+            log.info("getRecord(" + id + ")");
+        }
         String rdf = null;
         try {
             FullBeanImpl fullBean = (FullBeanImpl) edmServer.getFullBean(id);
             if (fullBean != null) {
                 rdf = EdmUtils.toEDM(fullBean, false);
             } else {
-                log.error("FullBean is null!");
+                if (debug) {
+                    log.error("FullBean is null!");
+                }
             }
 
         } catch (Exception e) {
