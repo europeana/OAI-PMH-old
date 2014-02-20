@@ -21,9 +21,10 @@ import static com.ontotext.oai.europeana.db.RegistryFields.KEY_RECORD_ID;
 public class MongoUtil {
 
 
-    public DBObject queryDateRange(String setId, Date begin, Date end) {
+    public DBObject queryDateRange(String setId, Date from, Date until) {
         DBObject query = new BasicDBObject();
-        query.put(KEY_DATE,  BasicDBObjectBuilder.start("$gte", begin).add("$lt", end).get());
+        // from date has 000 milliseconds. Adding 1000 and '<' comparison selects the entire second from .000 to .999
+        query.put(KEY_DATE, BasicDBObjectBuilder.start("$gte", from).add("$lt", new Date(until.getTime() + 1000L)).get());
         if (setId != null) {
             query.put(KEY_COLLECTION, setId);
         }
