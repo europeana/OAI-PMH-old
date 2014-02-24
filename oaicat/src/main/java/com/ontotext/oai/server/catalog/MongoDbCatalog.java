@@ -189,9 +189,9 @@ public class MongoDbCatalog extends AbstractCatalog {
         }
 
         if (!token.hasNext()) {
-//            resumptionMap.remove(token.getId());
-//            log.info("Remove exhausted token: " + token.getId());
-//            token.close(); //
+            resumptionMap.remove(token.getId());
+            log.info("Remove exhausted token: " + token.getId());
+            token.close(); //
             m = null;
         }
 
