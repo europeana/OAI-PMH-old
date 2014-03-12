@@ -11,11 +11,11 @@
         <url>www.keep.pt</url>
     </organization>
     <distributionManagement>
-        <repository>
-            <id>KEEP Artifacts</id>
-            <name>KEEP Artifacts-releases</name>
-            <url>http://artifactory.keep.pt/keep</url>
-        </repository>
+        <snapshotRepository>
+            <id>europeanalabs.eu</id>
+            <name>europeanalabs.eu-snapshots</name>
+            <url>http://europeanalabs.eu/artifactory/libs-snapshots-local</url>
+        </snapshotRepository>
     </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -146,18 +146,18 @@
     </dependencies>
     <repositories>
         <repository>
+            <id>snapshots</id>
+            <url>http://europeanalabs.eu/artifactory/libs-snapshots-local</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
             <id>releases</id>
             <url>http://europeanalabs.eu/artifactory/repo</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-        </repository>
-        <repository>
-            <id>snapshots</id>
-            <url>http://europeanalabs.eu/artifactory/repo</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
         </repository>
     </repositories>
 </project>
