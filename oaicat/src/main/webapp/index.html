@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>OAICat - An OAI-PMH v2 Repository Framework</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="oaicat.css" rel="stylesheet" type="text/css">
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="20" cellpadding="0">
+<tr valign="top">
+<td bgcolor="#669933">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr valign="top">
+<td width="50%"><a href="index.html"><img src="banner01.gif" alt="OAICat - An OAI-PMH v2 Repository Framework" width="388" height="120" border="0"></a></td>
+<td width="50%" align="right"><a href="http://www.oclc.org/research/"><img src="banner02.gif" alt="A Project of OCLC Research" width="202" height="120" border="0"></a></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr valign="top">
+<td>
+	  <h2>Description</h2>
+    <p>The <a href="http://www.oclc.org/research/software/oai/cat.shtm">OAICat</a> Open Source project is a Java Servlet web application providing an <a href="http://www.openarchives.org/">OAI-PMH v2.0</a>
+    repository framework. This framework can be customized to work with arbitrary data repositories
+    by implementing some Java interfaces. This demonstration of the interfaces is
+    based on the <a href="http://purl.oclc.org/NET/OPENSRC/downloads/oaicat/jars/oaicat.war">webapp distribution</a> and can be tested through the protocol request forms listed below.</p>
+	  <p>If you customize these pages, please include the OAICat icon below and hyperlink it to http://www.oclc.org/research/software/oai/cat.shtm</p>
+    <p><b>Caveat!</b> This webapp assumes that Tomcat will be started from the CATALINA_HOME subdirectory. If these pages appear, but the servlets invoked from the forms below fail, chances are you started Tomcat from a different location. In this case, edit the webapps/oaicat/WEB-INF/web.xml file and change the following relative reference to an absolute file path.</p>
+    <p>&lt;param-value&gt;webapps/oaicat/WEB-INF/oaicat.properties&lt;/param-value&gt;</p>
+    <h2>License Information</h2>
+    <a href="http://purl.oclc.org/oclc/research/ORPL/">OCLC Research Public License</a>
+</td>
+</tr>
+<tr valign="top">
+<td>
+<h2>Demo baseURL</h2>
+	  <p>http://localhost:8080/oaicat/OAIHandler (assuming Tomcat's default port 8080)</p>
+</td>
+</tr>
+<tr valign="top">
+<td>
+<h2>Protocol Request Forms</h2>
+<ol>
+<li><a href="identify.html">Identify</a></li>
+<li><a href="getRecord.html">GetRecord</a></li>
+<li><a href="listIdentifiers.html">ListIdentifiers</a> (<a href="listIdentifiersResumption.html">Resumption</a>)</li>
+<li><a href="listMetadataFormats.html">ListMetadataFormats</a></li>
+<li><a href="listRecords.html">ListRecords</a> (<a href="listRecordsResumption.html">Resumption</a>)</li>
+<li><a href="listSets.html">ListSets</a> (<a href="listSetsResumption.html">Resumption</a>)</li>
+</ol>
+</td>
+</tr>
+<tr valign="top">
+<td>
+<h2>Customization Notes</h2>
+<ol>
+<li><a href="filesys.html">File System Implementation (default)</a></li>
+<li><a href="xmlfile.html">Single XML File Implementation</a></li>
+<li><a href="sru.html">SRW/U Implementation</a></li>	    
+<li><a href="jdbc.html">JDBC Implementation</a></li>
+<li><a href="newton.html">Newton Implementation</a></li>
+<li><a href="gwen.html">Gwen Implementation</a></li>
+</ol>
+</td>
+</tr>
+<tr valign="top">
+<td bgcolor="#669933" height="1"></td>
+</tr>
+<tr valign="top">
+<td><a href="http://www.oclc.org/research/software/oai/cat.shtm"><img border="0" src="oaicat_icon.gif" alt="OAICat - An OAI-PMH v2 Repository Framework" width="120" height="60"></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.openarchives.org"><img border="0" src="http://www.openarchives.org/images/OA100.gif"/></a></td>
+</tr>
+<tr valign="top">
+<td><address><a href="mailto:jyoung@oclc.org">Jeff Young</a></address><span class="footer">
+<!-- Created: Wed Oct  2 16:53:15 EDT 2002 -->
+<!-- hhmts start -->
+Last modified: Tue Aug 31 17:09:04 Eastern Daylight Time 2004
+<!-- hhmts end -->
+</span></td>
+</tr>
+</table>
+</body>
+</html>
