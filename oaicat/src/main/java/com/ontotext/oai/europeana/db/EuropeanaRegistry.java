@@ -20,10 +20,10 @@ public class EuropeanaRegistry {
     private MongoUtil mongoUtil = new MongoUtil();
 
     public EuropeanaRegistry(Properties properties) {
-        String host = properties.getProperty("MongoDbCatalog.host", "localhost");
-        int port = Integer.parseInt(properties.getProperty("MongoDbCatalog.port", "27017"));
-        String dbName = properties.getProperty("EdmOaiHandler.db", "EuropeanaIdRegistry");
-        String registryName = properties.getProperty("MongoDbCatalog.collection", "EuropeanaIdRegistry");
+        String host = properties.getProperty("EuropeanaRegistry.host", "localhost");
+        int port = Integer.parseInt(properties.getProperty("EuropeanaRegistry.port", "27017"));
+        String dbName = properties.getProperty("EuropeanaRegistry.db", "EuropeanaIdRegistry");
+        String registryName = properties.getProperty("EuropeanaRegistry.collection", "EuropeanaIdRegistry");
         try {
             mongoClient = new MongoClient(host, port);
             mongoDb = mongoClient.getDB(dbName);

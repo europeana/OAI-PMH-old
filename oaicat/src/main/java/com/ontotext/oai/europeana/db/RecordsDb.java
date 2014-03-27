@@ -23,7 +23,7 @@ public class RecordsDb implements RecordsProvider {
         debug = Boolean.parseBoolean(properties.getProperty("RecordsDb.debug", "false"));
         String host = properties.getProperty("RecordsDb.host", "localhost");
         int port = Integer.parseInt(properties.getProperty("RecordsDb.port", "27017"));
-        String databaseName = properties.getProperty("RecordsDb.dbname", "europeana");
+        String databaseName = properties.getProperty("RecordsDb.db", "europeana");
         String username = properties.getProperty("RecordsDb.username", "");
         String password = properties.getProperty("RecordsDb.password", "");
 
