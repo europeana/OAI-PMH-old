@@ -1,20 +1,28 @@
 package process.record;
 
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.logging.LogFactory;
+import process.OutHolder;
+import process.RecordProcessor;
 import se.kb.oai.pmh.Header;
 import se.kb.oai.pmh.Record;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by Simo on 14-2-11.
  */
-public class CollectionsStats extends RecordProcessor {
+public class CollectionsStats extends OutHolder implements RecordProcessor {
     Map<String, MutablePair<Integer, Integer>> statsMap = new HashMap<String, MutablePair<Integer, Integer>>(20000);
 
-    public void process(Record record) {
+    public CollectionsStats(Properties properties) {
+        super(properties.getProperty("CollectionsStats.logFile"), LogFactory.getLog(CollectionsStats.class));
+    }
+
+    public void processRecord(Record record) {
         boolean good = record.getMetadata() != null;
         Header header = record.getHeader();
         if (header != null) {
@@ -22,14 +30,13 @@ public class CollectionsStats extends RecordProcessor {
         }
     }
 
-    public Object total() {
+    public void processRecordEnd() {
         for (Map.Entry<String, MutablePair<Integer, Integer>> entry : statsMap.entrySet()) {
             MutablePair<Integer, Integer> good_bad = entry.getValue();
             int good = good_bad.left;
             int bad = good_bad.right;
             System.out.println(entry.getKey() + "\t" + good + "\t" + bad);
         }
-        return null;
     }
 
     private void add(List<String> setId, boolean good) {

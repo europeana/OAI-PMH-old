@@ -1,9 +1,14 @@
 import iterator.SetsIteratorAdaptor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
-import process.list.ListProcessor;
+import process.ListProcessor;
+import process.RecordProcessor;
+import process.list.ListProcessorHub;
 import process.list.TraceListProcessor;
 import process.record.CountRecords;
-import process.record.RecordProcessor;
+import process.record.EmptyRecordProcessor;
+import process.record.SearchString;
 import query.QueryListRecords;
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
@@ -11,18 +16,13 @@ import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.oai.pmh.SetsList;
 import stats.SetStats;
-import walk.ListRecordsWalker;
-import walk.Navigator;
-import walk.PageCountNavigator;
-import walk.WalkFinalizer;
+import walk.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,18 +32,29 @@ import java.util.concurrent.Executors;
  * Date: 13-10-30
  * Time: 13:51
  */
-public class Main {
-    private static final int numThreads = 10;
+public class Main implements Runnable {
+    private static final int numThreads = 1;
     private static final File outputDirectory = new File("data");
+    private static final Log log = LogFactory.getLog(Main.class);
 
-    private static final String host = "http://localhost:8080/oaicat/OAIHandler";
-//    private static final String host = "http://europeana-oai.ontotext.com/oaicat/OAIHandler";
-//    private static final String host = "http://crawler4:7080/oaicat/OAIHandler";
-
-    private static final int numPages = 1000;
     private static int nullRecords = 0;
     private static int goodRecords = 0;
     private static Map<String, SetStats> setStats = new HashMap<String, SetStats>(1000);
+    private final Properties properties;
+    QueryListRecords query;
+    OaiPmhServer server;
+    ListProcessorHub listProcessor;
+    int numPages;
+
+    Main(Properties properties) {
+
+        this.properties = properties;
+        query = QueryListRecords.load(properties);
+        String serverUrl = properties.getProperty("server", "http://localhost:8080/oaicat/OAIHandler");
+        server = new OaiPmhServer(serverUrl);
+        listProcessor = ListProcessorHub.load(properties);
+        numPages = Integer.parseInt(properties.getProperty("numPages", "0"));
+    }
 
     private static void printStats(Map<String, SetStats> m) {
         for (Map.Entry<String, SetStats> entry : m.entrySet()) {
@@ -57,24 +68,22 @@ public class Main {
         return stop;
     }
 
-    private static void iterateSets(Iterator<String> itSets, int numThreads) {
-
+    private void iterateSets(Iterator<String> itSets, int numThreads) {
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
         try {
             while (itSets.hasNext()) {
                 String set = itSets.next();
-                OaiPmhServer server = new OaiPmhServer(host);
                 QueryListRecords query = new QueryListRecords(null, null, set);
                 File outFile = new File(outputDirectory, set + ".out");
                 try {
                     PrintStream out = new PrintStream(new FileOutputStream(outFile));
-                    RecordProcessor recordProcessor = new CountRecords(out);
-                    ListProcessor listProcessor = new TraceListProcessor(out);
+                    RecordProcessor recordProcessor = new CountRecords(properties);
+                    ListProcessor listProcessor = new TraceListProcessor(properties);
                     Navigator<RecordsList> navigator = new PageCountNavigator(numPages);
                     ListRecordsWalker walker = new ListRecordsWalker(server, recordProcessor, listProcessor, query, navigator);
                     executor.execute(new WalkFinalizer(out, walker));
                 } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                    log.error(e);
                 }
             }
         } finally {
@@ -82,18 +91,18 @@ public class Main {
         }
     }
 
-    private static void iterateSets() {
+    private void iterateSets(String host) {
         OaiPmhServer server = new OaiPmhServer(host);
 
-//        QueryListRecords query = new QueryListRecords(null, null, null);
+        QueryListRecords query = new QueryListRecords(null, null, null);
 //        QueryListRecords query = new QueryListRecords(null, null, "2022036");
 //        QueryListRecords query = new QueryListRecords(null, null, "2023823");
-        QueryListRecords query = new QueryListRecords(null, null, "03486");
+//        QueryListRecords query = new QueryListRecords(null, null, "03486");
 
-        RecordProcessor recordProcessor = new CountRecords(System.out);
+        RecordProcessor recordProcessor = new SearchString(properties);
 //        RecordProcessor recordProcessor = new CollectionsStats();
 
-        ListProcessor listProcessor = new TraceListProcessor(System.out);
+        ListProcessor listProcessor = new TraceListProcessor(null);
 //        ListProcessor listProcessor = new TimeMeasureProcessor();
 
         PageCountNavigator navigator = new PageCountNavigator(numPages);
@@ -101,21 +110,19 @@ public class Main {
 
         try {
             walker.run();
+            recordProcessor.processRecordEnd();
+            listProcessor.processListFinish();
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            recordProcessor.total();
-            listProcessor.total();
+            log.error(e); // is this possible?!
         }
-
     }
 
-    private static Iterator<String> getAllSets(OaiPmhServer server) {
+    private Iterator<String> getAllSets() {
         try {
             SetsList sets = server.listSets();
             return new SetsIteratorAdaptor(sets.asList().iterator());
         } catch (OAIException e) {
-            e.printStackTrace();
+            log.error(e);
         }
 
         return null;
@@ -202,7 +209,7 @@ public class Main {
             "9200103",
     };
 
-    public static void setSetStats(String[] args) throws Exception {
+    public void setSetStats(String host) throws Exception {
         OaiPmhServer server = new OaiPmhServer(host);
 //        Identification result = server.identify();
 
@@ -234,12 +241,52 @@ public class Main {
         printStats(setStats);
     }
 
+    private static Properties loadProperties(String[] args) {
+        Properties properties = new Properties();
+        final String fileName = (args.length == 0) ? "client.properties" : args[0];
+        try {
+            FileInputStream input = new FileInputStream(fileName);
+            try {
+                properties.load(input);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                input.close();
+            }
+        } catch (IOException e) {
+            log.error(e);
+        }
+        return properties;
+    }
+
+    public void run() {
+        Navigator<RecordsList> navigator = (numPages == 0)
+                ? new StandardNavigator()
+                : new PageCountNavigator(numPages);
+
+        ListRecordsWalker walker = new ListRecordsWalker(
+                server, new EmptyRecordProcessor(), listProcessor, query, navigator);
+        walker.run();
+        listProcessor.processListFinish();
+    }
+
     public static void main(String[] args) {
+        Properties properties = loadProperties(args);
+        Main main = new Main(properties);
+        main.run();
+
+//        try {
+//            setSetStats(args);
+//        } catch (Exception e) {
+//            log.error(e);
+//        }
 //        OaiPmhServer server = new OaiPmhServer(host);
 //        iterateSets();
 //        iterateSets( Arrays.asList(sets3).iterator(), numThreads);
 
-        OaiPmhServer server = new OaiPmhServer(host);
-        iterateSets( getAllSets(server), numThreads);
+//        main.iterateSets(main.getAllSets(), numThreads);
+
+//        iterateSets(Arrays.asList(new String[] {null}).iterator(), numThreads);
     }
+
 }

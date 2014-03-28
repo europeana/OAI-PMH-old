@@ -24,8 +24,8 @@ public class WalkFinalizer implements Runnable {
             out.println(new Date());
             sw.start();
             walker.run();
-            walker.recordProcessor.total();
-            walker.listProcessor.total();
+            walker.recordProcessor.processRecordEnd();
+            walker.listProcessor.processListFinish();
             sw.stop();
             out.println(sw);
         } finally {

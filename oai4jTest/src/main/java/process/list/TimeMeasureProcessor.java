@@ -1,54 +1,46 @@
 package process.list;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.commons.logging.LogFactory;
+import process.ListProcessor;
+import process.OutHolder;
 import se.kb.oai.pmh.RecordsList;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.util.Properties;
 
 /**
  * Created by Simo on 14-2-11.
  */
-public class TimeMeasureProcessor extends TraceListProcessor {
+public class TimeMeasureProcessor extends OutHolder implements ListProcessor {
     long lastTime = System.currentTimeMillis();
-    BufferedWriter writer;
-    private int counter = 0;
-    private final int flushRate = 100;
+    long totalTime = 0L;
+    private long listCount = 0L;
 
-    public TimeMeasureProcessor(PrintStream out) {
-        super(out);
-        writer = new BufferedWriter(new PrintWriter(new PrintStream(out)));
+    public TimeMeasureProcessor(Properties properties) {
+        super(properties.getProperty("TimeMeasureProcessor.logFile"), LogFactory.getLog(TimeMeasureProcessor.class));
     }
 
-    public void process(RecordsList recordsList) {
-        super.process(recordsList);
+    public void processListBegin(RecordsList recordsList) {
         long time = System.currentTimeMillis();
         long diff = time - lastTime;
+        totalTime += diff;
+        ++listCount;
         lastTime = time;
-        if (writer != null) {
-            try {
-                writer.append(Long.toString(diff));
-                writer.newLine();
-                if (++counter % flushRate == 0) {
-                    writer.flush();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        out.println(diff);
     }
 
-    public Object total() {
-        super.total();
-        if (writer != null) {
-            try {
-                writer.close();
-                writer = null;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
+    public void processListEnd(RecordsList recordsList) {
+
+    }
+
+    public void processListFinish() {
+        out.println("Total pages: " + listCount);
+        System.out.println("Total time: " + DurationFormatUtils.formatDuration(totalTime, "HH:mm:ss.SSS"));
+        out.println("Average time: " + DurationFormatUtils.formatDuration(totalTime/listCount, "mm:ss.SSS"));
+        super.close();
+    }
+
+    public void processListError(Exception e) {
+        processListFinish();
     }
 }

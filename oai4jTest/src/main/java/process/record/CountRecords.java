@@ -1,22 +1,23 @@
 package process.record;
 
+import org.apache.commons.logging.LogFactory;
+import process.OutHolder;
+import process.RecordProcessor;
 import se.kb.oai.pmh.Record;
 
-import java.io.PrintStream;
+import java.util.Properties;
 
 /**
  * Created by Simo on 14-1-30.
  */
-public class CountRecords extends RecordProcessor {
+public class CountRecords extends OutHolder implements RecordProcessor {
     private int nullRecords = 0;
     private int goodRecords = 0;
-    private final PrintStream out;
-
-    public CountRecords(PrintStream out) {
-        this.out = out;
+    public CountRecords(Properties properties) {
+        super(properties.getProperty("CountRecords.logFile"),  LogFactory.getLog(CountRecords.class));
     }
 
-    public void process(Record record) {
+    public void processRecord(Record record) {
         if (record.getMetadata() == null) {
             ++nullRecords;
         } else {
@@ -24,9 +25,8 @@ public class CountRecords extends RecordProcessor {
         }
     }
 
-    public Object total() {
+    public void processRecordEnd() {
         out.println("TOTAL Records:\n Good: " + goodRecords + " Bad: " + nullRecords);
-        return out;
     }
 
 

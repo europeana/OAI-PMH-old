@@ -1,7 +1,9 @@
 package walk;
 
-import process.list.ListProcessor;
-import process.record.RecordProcessor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import process.ListProcessor;
+import process.RecordProcessor;
 import query.QueryListRecords;
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
@@ -18,6 +20,7 @@ public class ListRecordsWalker implements Runnable {
     public final ListProcessor listProcessor;
     private final QueryListRecords query;
     private final Navigator<RecordsList> navigator;
+    Log log = LogFactory.getLog(ListRecordsWalker.class);
 
     public ListRecordsWalker(OaiPmhServer server,
                              RecordProcessor recordProcessor,
@@ -32,24 +35,23 @@ public class ListRecordsWalker implements Runnable {
     }
 
     public void runThrow() throws OAIException {
-        RecordsList rl = listRecords(query);
-        listProcessor.process(rl);
+        RecordsList recordsList = listRecords(query);
 
         do {
-
-            navigator.check(rl);
+            navigator.check(recordsList);
             if (navigator.shouldStop()) {
                 break;
             }
-            listProcessor.process(rl);
-            for (Record record : rl.asList()) {
-                recordProcessor.process(record);
+            listProcessor.processListBegin(recordsList);
+            for (Record record : recordsList.asList()) {
+                recordProcessor.processRecord(record);
             }
-            ResumptionToken resumptionToken = rl.getResumptionToken();
+            listProcessor.processListEnd(recordsList);
+            ResumptionToken resumptionToken = recordsList.getResumptionToken();
             if (resumptionToken == null) {
                 break;
             }
-            rl = server.listRecords(resumptionToken);
+            recordsList = server.listRecords(resumptionToken);
         } while (true);
     }
 
@@ -57,11 +59,11 @@ public class ListRecordsWalker implements Runnable {
         try {
             runThrow();
         } catch (OAIException e) {
-            e.printStackTrace();
+            listProcessor.processListError(e);
         }
     }
 
     private RecordsList listRecords(QueryListRecords query) throws OAIException {
-        return server.listRecords(query.metadataPrefix, query.from, query.until, query.set);
+        return server.listRecords(query.prefix, query.from, query.until, query.set);
     }
 }
