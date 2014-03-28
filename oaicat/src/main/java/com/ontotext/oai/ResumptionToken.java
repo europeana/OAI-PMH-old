@@ -50,11 +50,12 @@ public class ResumptionToken implements Iterator<RegistryInfo>{
         String eid = record.eid();
         Date date = record.last_checked();
         String orig = record.orig();
+        boolean deleted = record.deleted();
         ++cursor;
         DateTime now = new DateTime(new Date());
         expirationDate = now.plusMinutes(EXPIRE_MINUTES).toDate();
 
-        return  new RegistryInfo(cid, eid, date, orig);
+        return  new RegistryInfo(cid, eid, date, orig, deleted);
     }
 
     @Override

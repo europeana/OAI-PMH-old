@@ -10,13 +10,14 @@ public class RegistryInfo {
     public final String eid;
     public final Date last_checked;
     public final String orig;
-    public final boolean deleted = false; // not implemented
+    public final boolean deleted;
 
-    public RegistryInfo(String cid, String eid, Date last_checked, String orig) {
+    public RegistryInfo(String cid, String eid, Date last_checked, String orig, boolean deleted) {
         this.eid = eid;
         this.cid = cid;
         this.last_checked = last_checked;
         this.orig = orig;
+        this.deleted = deleted;
     }
 
     public RegistryInfo(RegistryInfo rhs) {
@@ -24,5 +25,6 @@ public class RegistryInfo {
         this.cid = rhs.cid;
         this.last_checked = rhs.last_checked;
         this.orig = rhs.orig;
+        this.deleted = rhs.deleted;
     }
 }

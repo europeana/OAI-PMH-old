@@ -24,7 +24,7 @@ public class RegistryRecordIterator implements Iterator<RegistryInfo> {
 
     public RegistryInfo next() {
         RegistryRecord record = ((RegistryRecord)cursor.next());
-        return new RegistryInfo(record.cid(),  record.eid(),  record.last_checked(),  record.orig());
+        return new RegistryInfo(record.cid(),  record.eid(),  record.last_checked(),  record.orig(), record.deleted());
     }
 
     public void remove() {

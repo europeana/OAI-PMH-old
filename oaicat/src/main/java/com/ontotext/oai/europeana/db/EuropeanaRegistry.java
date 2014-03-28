@@ -44,7 +44,8 @@ public class EuropeanaRegistry {
                 String cid = record.cid();
                 Date date = record.last_checked();
                 String orig = record.orig();
-                registryInfo =  new RegistryInfo(cid, recordId, date, orig);
+                boolean deleted = record.deleted();
+                registryInfo =  new RegistryInfo(cid, recordId, date, orig, deleted);
             }
         } finally {
             dbCursor.close();

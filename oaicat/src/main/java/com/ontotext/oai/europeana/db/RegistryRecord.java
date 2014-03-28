@@ -25,4 +25,8 @@ public class RegistryRecord extends BasicDBObject {
     public String orig() {
         return super.getString(KEY_ORIGINAL_ID);
     }
+
+    public boolean deleted() {
+        return super.getBoolean(KEY_DELETED, false);
+    }
 }

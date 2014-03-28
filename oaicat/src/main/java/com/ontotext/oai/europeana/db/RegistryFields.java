@@ -8,5 +8,5 @@ public class RegistryFields {
     public final static String KEY_COLLECTION = "cid";
     public final static String KEY_RECORD_ID = "eid";
     public final static String KEY_ORIGINAL_ID = "orid";
-//    private final String KEY_DELETED; // not implemented
+    public final static String KEY_DELETED = "deleted";
 }
