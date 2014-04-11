@@ -176,9 +176,21 @@ public class MongoDbCatalog extends AbstractCatalog {
     private Map<String, Object> listIdentifiers(ResumptionToken token, List<String> headers, List<String> identifiers) {
         Map<String, Object> m = createResumptionMap(token);
         RecordFactory rf = getRecordFactory();
+
+        _outer_loop:
         for (int i = 0; i < recordsPerPage; ++i) {
             if (token.hasNext()) {
                 RegistryInfo ri = token.next();
+                // TODO: temp patch until 'deleted' flag became correct. Check ResumptionToken.java too.
+                // Skip records
+                while (ri.deleted) {
+                    log.info("Skip 'deleted' record: " + ri.eid);
+                    if (token.hasNext()) {
+                        ri = token.next();
+                    } else {
+                        break _outer_loop;
+                    }
+                }
                 String header = registryInfo2Xml(ri);
                 headers.add(header);
                 String identifier = rf.getOAIIdentifier(ri);

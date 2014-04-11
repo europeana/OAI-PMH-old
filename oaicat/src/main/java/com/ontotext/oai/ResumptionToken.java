@@ -51,7 +51,10 @@ public class ResumptionToken implements Iterator<RegistryInfo>{
         Date date = record.last_checked();
         String orig = record.orig();
         boolean deleted = record.deleted();
-        ++cursor;
+        // TODO: temp patch until 'deleted' flag became correct.
+        if (!deleted) {
+            ++cursor;
+        }
         DateTime now = new DateTime(new Date());
         expirationDate = now.plusMinutes(EXPIRE_MINUTES).toDate();
 
