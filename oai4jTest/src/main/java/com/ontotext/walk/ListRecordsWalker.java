@@ -1,10 +1,10 @@
-package walk;
+package com.ontotext.walk;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import process.ListProcessor;
-import process.RecordProcessor;
-import query.QueryListRecords;
+import com.ontotext.process.ListProcessor;
+import com.ontotext.process.RecordProcessor;
+import com.ontotext.query.QueryListRecords;
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;

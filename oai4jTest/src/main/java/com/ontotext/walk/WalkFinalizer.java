@@ -1,4 +1,4 @@
-package walk;
+package com.ontotext.walk;
 
 import org.apache.commons.lang3.time.StopWatch;
 

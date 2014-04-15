@@ -1,4 +1,4 @@
-package query;
+package com.ontotext.query;
 
 /**
  * Created by Simo on 14-2-21.

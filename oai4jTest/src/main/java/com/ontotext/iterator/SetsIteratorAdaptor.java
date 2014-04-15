@@ -1,4 +1,4 @@
-package iterator;
+package com.ontotext.iterator;
 
 import se.kb.oai.pmh.Set;
 

@@ -1,4 +1,4 @@
-package helper;
+package com.ontotext.helper;
 
 import org.dom4j.Element;
 import se.kb.oai.pmh.Header;

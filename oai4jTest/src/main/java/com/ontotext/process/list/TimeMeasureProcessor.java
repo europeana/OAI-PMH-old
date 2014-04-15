@@ -1,9 +1,9 @@
-package process.list;
+package com.ontotext.process.list;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.logging.LogFactory;
-import process.ListProcessor;
-import process.OutHolder;
+import com.ontotext.process.ListProcessor;
+import com.ontotext.process.OutHolder;
 import se.kb.oai.pmh.RecordsList;
 
 import java.util.Properties;

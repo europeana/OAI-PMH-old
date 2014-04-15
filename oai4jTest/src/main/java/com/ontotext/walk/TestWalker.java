@@ -1,4 +1,4 @@
-package walk;
+package com.ontotext.walk;
 
 /**
  * Created by Simo on 14-2-26.

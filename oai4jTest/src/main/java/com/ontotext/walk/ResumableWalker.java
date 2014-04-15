@@ -1,7 +1,7 @@
-package walk;
+package com.ontotext.walk;
 
-import query.ListRecordsParamsImpl;
-import query.QueryListRecords;
+import com.ontotext.query.ListRecordsParamsImpl;
+import com.ontotext.query.QueryListRecords;
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;

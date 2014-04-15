@@ -1,6 +1,6 @@
-package process;
+package com.ontotext.process;
 
-import helper.Oai4jUtil;
+import com.ontotext.helper.Oai4jUtil;
 import org.apache.commons.logging.LogFactory;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;

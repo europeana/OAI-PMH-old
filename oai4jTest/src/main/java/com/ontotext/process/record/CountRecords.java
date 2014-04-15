@@ -1,8 +1,8 @@
-package process.record;
+package com.ontotext.process.record;
 
 import org.apache.commons.logging.LogFactory;
-import process.OutHolder;
-import process.RecordProcessor;
+import com.ontotext.process.OutHolder;
+import com.ontotext.process.RecordProcessor;
 import se.kb.oai.pmh.Record;
 
 import java.util.Properties;

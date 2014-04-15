@@ -1,6 +1,6 @@
-package process.record;
+package com.ontotext.process.record;
 
-import process.RecordProcessor;
+import com.ontotext.process.RecordProcessor;
 import se.kb.oai.pmh.Record;
 
 import java.util.List;

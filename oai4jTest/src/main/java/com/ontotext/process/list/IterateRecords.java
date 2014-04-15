@@ -1,7 +1,7 @@
-package process.list;
+package com.ontotext.process.list;
 
-import process.ListProcessor;
-import process.RecordProcessor;
+import com.ontotext.process.ListProcessor;
+import com.ontotext.process.RecordProcessor;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 

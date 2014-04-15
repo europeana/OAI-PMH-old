@@ -1,4 +1,4 @@
-package query;
+package com.ontotext.query;
 
 import java.util.Properties;
 

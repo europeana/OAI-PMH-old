@@ -1,22 +1,24 @@
-import iterator.SetsIteratorAdaptor;
+package com.ontotext;
+
+import com.ontotext.iterator.SetsIteratorAdaptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
-import process.ListProcessor;
-import process.RecordProcessor;
-import process.list.ListProcessorHub;
-import process.list.TraceListProcessor;
-import process.record.CountRecords;
-import process.record.EmptyRecordProcessor;
-import process.record.SearchString;
-import query.QueryListRecords;
+import com.ontotext.process.ListProcessor;
+import com.ontotext.process.RecordProcessor;
+import com.ontotext.process.list.ListProcessorHub;
+import com.ontotext.process.list.TraceListProcessor;
+import com.ontotext.process.record.CountRecords;
+import com.ontotext.process.record.EmptyRecordProcessor;
+import com.ontotext.process.record.SearchString;
+import com.ontotext.query.QueryListRecords;
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.oai.pmh.SetsList;
-import stats.SetStats;
-import walk.*;
+import com.ontotext.stats.SetStats;
+import com.ontotext.walk.*;
 
 import java.io.*;
 import java.util.HashMap;
@@ -282,11 +284,11 @@ public class Main implements Runnable {
 //        }
 //        OaiPmhServer server = new OaiPmhServer(host);
 //        iterateSets();
-//        iterateSets( Arrays.asList(sets3).iterator(), numThreads);
+//        iterateSets( Arrays.asList(sets3).com.ontotext.iterator(), numThreads);
 
 //        main.iterateSets(main.getAllSets(), numThreads);
 
-//        iterateSets(Arrays.asList(new String[] {null}).iterator(), numThreads);
+//        iterateSets(Arrays.asList(new String[] {null}).com.ontotext.iterator(), numThreads);
     }
 
 }

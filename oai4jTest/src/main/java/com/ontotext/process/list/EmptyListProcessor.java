@@ -1,6 +1,6 @@
-package process.list;
+package com.ontotext.process.list;
 
-import process.ListProcessor;
+import com.ontotext.process.ListProcessor;
 import se.kb.oai.pmh.RecordsList;
 
 /**

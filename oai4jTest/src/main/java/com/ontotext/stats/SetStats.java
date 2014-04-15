@@ -1,4 +1,4 @@
-package stats;
+package com.ontotext.stats;
 
 /**
  * Created by Simo on 14-1-30.

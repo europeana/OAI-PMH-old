@@ -1,4 +1,4 @@
-package process;
+package com.ontotext.process;
 
 import se.kb.oai.pmh.RecordsList;
 

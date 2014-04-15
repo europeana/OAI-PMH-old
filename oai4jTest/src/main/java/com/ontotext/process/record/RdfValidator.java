@@ -1,14 +1,14 @@
-package process.record;
+package com.ontotext.process.record;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFReader;
-import helper.Oai4jUtil;
+import com.ontotext.helper.Oai4jUtil;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jena.riot.RiotException;
-import process.ListProcessor;
-import process.OutHolder;
-import process.RecordProcessor;
+import com.ontotext.process.ListProcessor;
+import com.ontotext.process.OutHolder;
+import com.ontotext.process.RecordProcessor;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 

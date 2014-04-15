@@ -1,9 +1,9 @@
-package process.record;
+package com.ontotext.process.record;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.logging.LogFactory;
-import process.OutHolder;
-import process.RecordProcessor;
+import com.ontotext.process.OutHolder;
+import com.ontotext.process.RecordProcessor;
 import se.kb.oai.pmh.Header;
 import se.kb.oai.pmh.Record;
 

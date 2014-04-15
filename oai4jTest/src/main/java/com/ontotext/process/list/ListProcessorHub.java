@@ -1,10 +1,10 @@
-package process.list;
+package com.ontotext.process.list;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import process.ListProcessor;
-import process.RecordProcessor;
-import process.record.RecordProcessorHub;
+import com.ontotext.process.ListProcessor;
+import com.ontotext.process.RecordProcessor;
+import com.ontotext.process.record.RecordProcessorHub;
 import se.kb.oai.pmh.RecordsList;
 
 import java.lang.reflect.Constructor;

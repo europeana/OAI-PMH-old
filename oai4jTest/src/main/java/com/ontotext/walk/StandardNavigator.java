@@ -1,4 +1,4 @@
-package walk;
+package com.ontotext.walk;
 
 import se.kb.oai.pmh.RecordsList;
 
