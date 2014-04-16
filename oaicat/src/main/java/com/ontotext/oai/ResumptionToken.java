@@ -7,6 +7,7 @@ import org.joda.time.DateTime;
 
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Random;
 
 /**
  * Created by Simo on 14-1-21.
@@ -16,12 +17,14 @@ public class ResumptionToken implements Iterator<RegistryInfo>{
     private Date expirationDate;
     private final String id;
     private long cursor = 0L;
-    private final int EXPIRE_MINUTES = 10;
+    private static final int EXPIRE_MINUTES = 10;
+    private static final TokenGen tokenGen = new TokenGen();
+
 
 
     public ResumptionToken(DBCursor dbCursor, long id) {
         this.dbCursor = dbCursor;
-        this.id = "tokenId_" + id;
+        this.id = tokenGen.createTokenId(id);
         DateTime now = new DateTime(new Date());
         expirationDate = now.plusMinutes(EXPIRE_MINUTES).toDate();
     }
@@ -66,5 +69,20 @@ public class ResumptionToken implements Iterator<RegistryInfo>{
 
     public void close() {
         dbCursor.close();
+    }
+
+    private static class TokenGen {
+        private static final int RANDOM_CHARS = 5;
+
+        private Random random = new Random();
+        public String createTokenId(long id) {
+            StringBuilder sb = new StringBuilder(RANDOM_CHARS+20); // some extra space for number
+            for (int i = 0; i != RANDOM_CHARS; ++i) {
+                sb.append((char)((int)'A' + random.nextInt(26)));
+            }
+            sb.append('_');
+            sb.append(id);
+            return sb.toString();
+        }
     }
 }
