@@ -1,5 +1,8 @@
 package com.ontotext.oai.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Created by Simo on 16.4.2014 г..
  *
@@ -7,6 +10,7 @@ package com.ontotext.oai.util;
  * Used to remove resumptionToken from the map when exhausted.
  */
 public class NullifyObjectCallback implements Callback {
+    private final Log log = LogFactory.getLog(NullifyObjectCallback.class);
     private final Object[] objects;
     private final int[] removeIndices;
 
@@ -16,7 +20,7 @@ public class NullifyObjectCallback implements Callback {
     }
 
     public void callback() {
-        System.out.println("Remove resumption map");
+        log.info("Remove resumption map");
         for (int i : removeIndices) {
             objects[i] = null;
         }

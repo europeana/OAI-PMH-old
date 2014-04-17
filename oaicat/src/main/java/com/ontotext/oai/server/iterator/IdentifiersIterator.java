@@ -14,7 +14,6 @@ public class IdentifiersIterator extends ResumptionTokenIterator {
 
     @Override
     String convert(RegistryInfo registryInfo) {
-        System.out.println("Identifiers");
         return recordFactory.getOAIIdentifier(registryInfo);
     }
 }

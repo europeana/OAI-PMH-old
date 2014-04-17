@@ -13,7 +13,6 @@ public class HeadersIterator extends ResumptionTokenIterator {
     }
 
     String convert(RegistryInfo registryInfo) {
-        System.out.println("Headers");
         StringBuilder sb = new StringBuilder(500);
         if (registryInfo != null) {
             sb.append("<header>");
