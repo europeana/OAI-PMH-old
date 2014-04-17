@@ -543,7 +543,6 @@ public abstract class AbstractCatalog {
             System.out.println("in AbstractCatalog.listRecords");
         }
         Map listIdentifiersMap = listIdentifiers(from, until, set, metadataPrefix);
-        String resumptionToken = (String)listIdentifiersMap.get("resumptionToken");
         Iterator identifiers = (Iterator)listIdentifiersMap.get("identifiers");
         
         Map listRecordsMap = new HashMap();
@@ -559,6 +558,7 @@ public abstract class AbstractCatalog {
             }
         }
         listRecordsMap.put("records", records.iterator());
+        String resumptionToken = (String)listIdentifiersMap.get("resumptionToken");
         if (resumptionToken != null) {
             listRecordsMap.put("resumptionToken", resumptionToken);
         }

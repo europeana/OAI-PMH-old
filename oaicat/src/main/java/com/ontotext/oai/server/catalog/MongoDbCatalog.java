@@ -9,7 +9,11 @@ import com.ontotext.oai.ResumptionToken;
 import com.ontotext.oai.europeana.DataSet;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CommonDb;
+import com.ontotext.oai.server.iterator.HeadersIterator;
+import com.ontotext.oai.server.iterator.IdentifiersIterator;
+import com.ontotext.oai.util.Callback;
 import com.ontotext.oai.util.DateConverter;
+import com.ontotext.oai.util.NullifyObjectCallback;
 import com.ontotext.oai.util.SimpleMap;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
@@ -120,6 +124,9 @@ public class MongoDbCatalog extends AbstractCatalog {
 
     private void addResumptionMap(Map listRecordsMap) {
         String resumptionToken = (String)listRecordsMap.get("resumptionToken");
+        if (resumptionToken == null) {
+            return;
+        }
         ResumptionToken token = resumptionMap.get(resumptionToken);
         if (token != null) {
             Map<String, Object> m = createResumptionMap(token);
@@ -165,49 +172,18 @@ public class MongoDbCatalog extends AbstractCatalog {
     }
 
     public Map listIdentifiers(ResumptionToken token) {
-        List<String> headers = new ArrayList<String>(recordsPerPage);
-        List<String> identifiers = new ArrayList<String>(recordsPerPage);
-        Map<String, Object> m = listIdentifiers(token,  headers,  identifiers);
-        String[] keys = new String[]{"headers", "identifiers", "resumptionMap", "resumptionToken"};
-        Object[] vals = new Object[] { headers.iterator(), identifiers.iterator(), m, token.getId()};
-        return new SimpleMap(keys,  vals);
-    }
-
-    private Map<String, Object> listIdentifiers(ResumptionToken token, List<String> headers, List<String> identifiers) {
+        RecordFactory recordFactory = getRecordFactory();
+        // Both iterators are alternatively used, but here I don't know which to put in the map.
+        // Headers are used only in ListIdentifiers; iterators are used in ListRecords.
+        HeadersIterator headers = new HeadersIterator(token, recordFactory, recordsPerPage);
+        IdentifiersIterator identifiers =  new IdentifiersIterator(token, recordFactory, recordsPerPage);
         Map<String, Object> m = createResumptionMap(token);
-        RecordFactory rf = getRecordFactory();
-
-        _outer_loop:
-        for (int i = 0; i < recordsPerPage; ++i) {
-            if (token.hasNext()) {
-                RegistryInfo ri = token.next();
-                // TODO: temp patch until 'deleted' flag became correct. Check ResumptionToken.java too.
-                // Skip records
-                while (ri.deleted) {
-                    log.info("Skip 'deleted' record: " + ri.eid);
-                    if (token.hasNext()) {
-                        ri = token.next();
-                    } else {
-                        break _outer_loop;
-                    }
-                }
-                String header = registryInfo2Xml(ri);
-                headers.add(header);
-                String identifier = rf.getOAIIdentifier(ri);
-                identifiers.add(identifier);
-            } else {
-                break;
-            }
-        }
-
-        if (!token.hasNext()) {
-            resumptionMap.remove(token.getId());
-            log.info("Remove exhausted token: " + token.getId());
-            token.close(); //
-            m = null;
-        }
-
-        return m;
+        String[] keys = new String[]{"headers", "identifiers", "resumptionMap", "resumptionToken"};
+        Object[] vals = new Object[] { headers, identifiers, m, token.getId()};
+        Callback removeResumptionMap = new NullifyObjectCallback(vals, new int[]{2, 3} );
+        headers.setCallback(removeResumptionMap);
+        identifiers.setCallback(removeResumptionMap);
+        return new SimpleMap<String, Object>(keys,  vals);
     }
 
     Map<String, Object> createResumptionMap(ResumptionToken token) {
@@ -216,23 +192,6 @@ public class MongoDbCatalog extends AbstractCatalog {
         SimpleMap<String, Object> map = new SimpleMap<String, Object>(keys,  values);
         return map;
     }
-
-//    private Map<String, Object> listIdentifiers(DBCursor dbCursor) {
-//
-//        Iterator<RegistryInfo> dbIterator = new RegistryRecordIterator(dbCursor);
-//        HeaderIterator headers = new HeaderIterator(dbIterator);
-//        CounterAdapterIterator<String> limitedHeaders = new CounterAdapterIterator<String>(headers,  10);
-//        IdentifierIterator identifiers = new IdentifierIterator(dbIterator);
-//        CounterAdapterIterator<String> limitedIdentifiers = new CounterAdapterIterator<String>(identifiers,  10);
-//        String[] keys = new String[]{"headers", "identifiers"};
-//        Object[] vals = new Object[] { limitedHeaders, limitedIdentifiers };
-//        Map<String, Object> map = new SimpleMap<String, Object>(keys, vals);
-
-//        HashMap<String, Object> map = new HashMap<String, Object>(5);
-//        map.put("headers", limitedHeaders);
-
-//        return map;
-//    }
 
     @Override
     public String getRecord(String identifier, String metadataPrefix) throws IdDoesNotExistException, CannotDisseminateFormatException, OAIInternalServerError {
@@ -331,27 +290,6 @@ public class MongoDbCatalog extends AbstractCatalog {
         public void remove() {}
     }
 
-    private class HeaderIterator implements Iterator<String> {
-        private final Iterator<RegistryInfo> iterator;
-
-        HeaderIterator(Iterator<RegistryInfo> iterator) {
-            this.iterator = iterator;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return iterator.hasNext();
-        }
-
-        @Override
-        public String next() {
-            return registryInfo2Xml(iterator.next());
-        }
-
-        @Override
-        public void remove() {}
-    }
-
     private class IdentifierIterator implements Iterator<String> {
         private final Iterator<RegistryInfo> iterator;
 
@@ -393,46 +331,5 @@ public class MongoDbCatalog extends AbstractCatalog {
         }
 
         return  sb.toString();
-    }
-
-    private String registryInfo2Xml(RegistryInfo registryInfo) {
-        StringBuilder sb = new StringBuilder(500);
-        if (registryInfo != null) {
-            sb.append("<header>");
-            RecordFactory recordFactory = getRecordFactory();
-            String id = recordFactory.getOAIIdentifier(registryInfo);
-            if (id != null) {
-                sb.append("<identifier>").append(id).append("</identifier>");
-            }
-
-            String datestamp = recordFactory.getDatestamp(registryInfo);
-            if (datestamp != null) {
-                sb.append("<datestamp>").append(datestamp).append("</datestamp>");
-            }
-
-            String setSpec = registryInfo.cid;
-            if (setSpec != null) {
-                sb.append("<setSpec>").append(setSpec).append("</setSpec>");
-            }
-            sb.append("</header>");
-        }
-
-        return sb.toString();
-    }
-
-    public static void main(String[] args) throws IOException {
-        Properties properties = loadProperties();
-        AbstractCatalog oaiHandler = new MongoDbCatalog(properties);
-        try {
-            testListSets(oaiHandler);
-//            testListIdentifiers(oaiHandler);
-//            Map x = oaiHandler.listRecords("2011-01-01", "2013-01-01", null, "edm");
-//            String resumptionToken = (String) x.get("resumptionToken");
-//            Iterator identifiers = (Iterator) x.get("identifiers");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            oaiHandler.close();
-        }
     }
 }
