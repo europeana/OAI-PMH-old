@@ -17,7 +17,7 @@ public class OutHolder {
         this.log = log;
         if (fileName != null) {
             try {
-                out = new PrintStream(new FileOutputStream(fileName));
+                out = new PrintStream(new FileOutputStream(fileName, true)); // append
             } catch (FileNotFoundException e) {
                 log.error(e);
             }
