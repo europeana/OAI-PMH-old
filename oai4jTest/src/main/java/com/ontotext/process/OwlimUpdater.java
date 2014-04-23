@@ -30,17 +30,17 @@ public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProc
 
     private static RepositoryConnection getConnection(String sesameServer, String repositoryID) {
         Repository repo = new HTTPRepository(sesameServer, repositoryID);
-        RepositoryConnection connecton = null;
+        RepositoryConnection connection = null;
 
         try {
             repo.initialize();
-            connecton = repo.getConnection();
+            connection = repo.getConnection();
 
         } catch (RepositoryException e) {
             e.printStackTrace();
         }
 
-        return connecton;
+        return connection;
     }
 
 
