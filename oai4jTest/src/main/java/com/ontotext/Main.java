@@ -21,10 +21,7 @@ import com.ontotext.stats.SetStats;
 import com.ontotext.walk.*;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -275,7 +272,10 @@ public class Main implements Runnable {
     public static void main(String[] args) {
         Properties properties = loadProperties(args);
         Main main = new Main(properties);
+        System.out.println("Begin: " + new Date());
         main.run();
+        System.out.println("End: " + new Date());
+
 
 //        try {
 //            setSetStats(args);
