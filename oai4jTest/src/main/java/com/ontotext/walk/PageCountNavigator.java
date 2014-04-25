@@ -21,4 +21,8 @@ public class PageCountNavigator implements Navigator<RecordsList> {
     public boolean shouldStop() {
         return counter == maxCount;
     }
+
+    public void stop() {
+        counter = maxCount;
+    }
 }

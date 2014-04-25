@@ -12,6 +12,8 @@ import com.ontotext.process.record.CountRecords;
 import com.ontotext.process.record.EmptyRecordProcessor;
 import com.ontotext.process.record.SearchString;
 import com.ontotext.query.QueryListRecords;
+import org.openrdf.rio.RDFParserFactory;
+import org.openrdf.rio.RDFParserRegistry;
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
@@ -20,7 +22,9 @@ import se.kb.oai.pmh.SetsList;
 import com.ontotext.stats.SetStats;
 import com.ontotext.walk.*;
 
+import javax.management.*;
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -258,10 +262,29 @@ public class Main implements Runnable {
         return properties;
     }
 
+    private void registerMBean(Navigator navigator) throws OperationsException, MBeanException {
+        OaiClientControl control = new OaiClientControl(navigator);
+        ObjectName objectName = new ObjectName("com.ontotext:type=OaiClientControl");
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        mbs.registerMBean(control,  objectName);
+
+    }
+
     public void run() {
+
+
+
         Navigator<RecordsList> navigator = (numPages == 0)
                 ? new StandardNavigator()
                 : new PageCountNavigator(numPages);
+
+        try {
+            registerMBean(navigator);
+        } catch (OperationsException e) {
+            e.printStackTrace();
+        } catch (MBeanException e) {
+            e.printStackTrace();
+        }
 
         ListRecordsWalker walker = new ListRecordsWalker(
                 server, new EmptyRecordProcessor(), listProcessor, query, navigator);
