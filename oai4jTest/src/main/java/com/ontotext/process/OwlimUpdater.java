@@ -1,6 +1,5 @@
 package com.ontotext.process;
 
-import com.ontotext.helper.Oai4jUtil;
 import org.apache.commons.logging.LogFactory;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
@@ -10,8 +9,10 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
+import se.kb.xml.XMLUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -20,6 +21,7 @@ import java.util.Properties;
  */
 public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProcessor {
     RepositoryConnection repository;
+    private final int BUFFER_SIZE = 10*1024*1024; // 10 MB
     public OwlimUpdater(Properties properties) {
         super(properties.getProperty("OwlimUpdater.logFile"), LogFactory.getLog(OwlimUpdater.class));
         String server = properties.getProperty("OwlimUpdater.server", "http://localhost:8080/openrdf-sesame");
@@ -89,15 +91,17 @@ public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProc
             return;
         }
 
-        String metadata = Oai4jUtil.getMetadata(record);
-        if (metadata == null ) {
-            return;
-        }
+        ByteArrayOutputStream metadataStream = new ByteArrayOutputStream(BUFFER_SIZE);
 
         try {
-            repository.add(new ByteArrayInputStream(metadata.getBytes()), "", RDFFormat.RDFXML);
-        } catch (Exception e) {
+            XMLUtils.writeXmlTo(record.getMetadata(), metadataStream);
+            repository.add(new ByteArrayInputStream(metadataStream.toByteArray()), "", RDFFormat.RDFXML);
+        } catch (RepositoryException e) {
+            e.printStackTrace();
+        } catch (RDFParseException e) {
             out.println("Record: " + record.getHeader().getIdentifier() + " Error: " + e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
