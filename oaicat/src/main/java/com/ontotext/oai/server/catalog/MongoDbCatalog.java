@@ -147,7 +147,7 @@ public class MongoDbCatalog extends AbstractCatalog {
             log.error(e);
             throw new BadArgumentException();
         }
-        DBCursor dbCursor = db.listRecords(dateFrom, dateUntil, set);
+        DBCursor dbCursor = db.listRecords(dateFrom, dateUntil, set).batchSize(recordsPerPage);
         ResumptionToken token = new ResumptionToken(dbCursor, id_inc++);
         ResumptionToken oldToken = resumptionMap.get(token.getId());
         if (oldToken != null) {
