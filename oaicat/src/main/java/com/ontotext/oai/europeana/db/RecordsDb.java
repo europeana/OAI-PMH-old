@@ -47,9 +47,7 @@ public class RecordsDb implements RecordsProvider {
             if (fullBean != null) {
                 rdf = EdmUtils.toEDM(fullBean, false);
             } else {
-                if (debug) {
-                    log.error("FullBean is null!");
-                }
+                log.error("No record: " + id);
             }
 
         } catch (Exception e) {
