@@ -20,7 +20,7 @@ public class NullifyObjectCallback implements Callback {
     }
 
     public void callback() {
-        log.info("Remove resumption map");
+        log.debug("Remove resumption map");
         for (int i : removeIndices) {
             objects[i] = null;
         }
