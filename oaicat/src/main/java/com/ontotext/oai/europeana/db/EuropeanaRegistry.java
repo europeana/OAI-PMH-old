@@ -1,13 +1,12 @@
 package com.ontotext.oai.europeana.db;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
 import com.ontotext.oai.europeana.RegistryInfo;
 
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -24,8 +23,15 @@ public class EuropeanaRegistry {
         int port = Integer.parseInt(properties.getProperty("EuropeanaRegistry.port", "27017"));
         String dbName = properties.getProperty("EuropeanaRegistry.db", "EuropeanaIdRegistry");
         String registryName = properties.getProperty("EuropeanaRegistry.collection", "EuropeanaIdRegistry");
+        String username = properties.getProperty("EuropeanaRegistry.username");
+        String password = properties.getProperty("EuropeanaRegistry.password");
         try {
-            mongoClient = new MongoClient(host, port);
+            List<MongoCredential> credentials = null;
+            if (password != null && username != null) {
+                credentials = Arrays.asList(MongoCredential.createMongoCRCredential(username, dbName, password.toCharArray()));
+            }
+
+            mongoClient = new MongoClient(new ServerAddress(host, port), credentials);
             mongoDb = mongoClient.getDB(dbName);
             registry = mongoDb.getCollection(registryName);
             registry.setObjectClass(RegistryRecord.class);
