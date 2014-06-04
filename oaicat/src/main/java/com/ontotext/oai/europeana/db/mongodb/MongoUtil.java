@@ -1,4 +1,4 @@
-package com.ontotext.oai.europeana.db;
+package com.ontotext.oai.europeana.db.mongodb;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
@@ -6,9 +6,9 @@ import com.mongodb.DBObject;
 
 import java.util.Date;
 
-import static com.ontotext.oai.europeana.db.RegistryFields.KEY_COLLECTION;
-import static com.ontotext.oai.europeana.db.RegistryFields.KEY_DATE;
-import static com.ontotext.oai.europeana.db.RegistryFields.KEY_RECORD_ID;
+import static com.ontotext.oai.europeana.db.mongodb.RegistryFields.KEY_COLLECTION;
+import static com.ontotext.oai.europeana.db.mongodb.RegistryFields.KEY_DATE;
+import static com.ontotext.oai.europeana.db.mongodb.RegistryFields.KEY_RECORD_ID;
 
 /**
  * Created by Simo on 13-12-12.

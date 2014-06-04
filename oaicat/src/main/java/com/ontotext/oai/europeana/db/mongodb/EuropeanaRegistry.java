@@ -1,7 +1,10 @@
-package com.ontotext.oai.europeana.db;
+package com.ontotext.oai.europeana.db.mongodb;
 
 import com.mongodb.*;
 import com.ontotext.oai.europeana.RegistryInfo;
+import com.ontotext.oai.europeana.db.CloseableIterator;
+import com.ontotext.oai.europeana.db.RecordsRegistry;
+import com.ontotext.oai.europeana.db.RegistryRecord;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -12,11 +15,12 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-1-10.
  */
-public class EuropeanaRegistry {
+public class EuropeanaRegistry implements RecordsRegistry {
     private DB mongoDb;
     private MongoClient mongoClient;
     private DBCollection registry;
     private MongoUtil mongoUtil = new MongoUtil();
+    private int batchSize;
 
     public EuropeanaRegistry(Properties properties) {
         String host = properties.getProperty("EuropeanaRegistry.host", "localhost");
@@ -25,6 +29,7 @@ public class EuropeanaRegistry {
         String registryName = properties.getProperty("EuropeanaRegistry.collection", "EuropeanaIdRegistry");
         String username = properties.getProperty("EuropeanaRegistry.username");
         String password = properties.getProperty("EuropeanaRegistry.password");
+        batchSize = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "100"));
         try {
             List<MongoCredential> credentials = null;
             if (password != null && username != null) {
@@ -59,8 +64,8 @@ public class EuropeanaRegistry {
         return registryInfo;
     }
 
-    public DBCursor listRecords(Date from, Date until, String setId) {
-        return registry.find(mongoUtil.queryDateRange(setId,  from, until));
+    public CloseableIterator<RegistryRecord> listRecords(Date from, Date until, String setId) {
+        return new MongoDbCurosr<RegistryRecord>(registry.find(mongoUtil.queryDateRange(setId,  from, until)).batchSize(batchSize));
     }
 
     public void close() {

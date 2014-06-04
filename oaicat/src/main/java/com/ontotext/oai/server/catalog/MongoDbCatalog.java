@@ -3,12 +3,13 @@ package com.ontotext.oai.server.catalog;
 import ORG.oclc.oai.server.catalog.AbstractCatalog;
 import ORG.oclc.oai.server.catalog.RecordFactory;
 import ORG.oclc.oai.server.verb.*;
-import com.mongodb.DBCursor;
 import com.ontotext.oai.RecordInfo;
 import com.ontotext.oai.ResumptionToken;
 import com.ontotext.oai.europeana.DataSet;
 import com.ontotext.oai.europeana.RegistryInfo;
+import com.ontotext.oai.europeana.db.CloseableIterator;
 import com.ontotext.oai.europeana.db.CommonDb;
+import com.ontotext.oai.europeana.db.RegistryRecord;
 import com.ontotext.oai.server.iterator.HeadersIterator;
 import com.ontotext.oai.server.iterator.IdentifiersIterator;
 import com.ontotext.oai.util.Callback;
@@ -147,7 +148,7 @@ public class MongoDbCatalog extends AbstractCatalog {
             log.error(e);
             throw new BadArgumentException();
         }
-        DBCursor dbCursor = db.listRecords(dateFrom, dateUntil, set).batchSize(recordsPerPage);
+        CloseableIterator<RegistryRecord> dbCursor = db.listRecords(dateFrom, dateUntil, set);
         ResumptionToken token = new ResumptionToken(dbCursor, id_inc++);
         ResumptionToken oldToken = resumptionMap.get(token.getId());
         if (oldToken != null) {

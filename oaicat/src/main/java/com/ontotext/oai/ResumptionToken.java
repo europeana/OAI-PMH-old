@@ -1,10 +1,8 @@
 package com.ontotext.oai;
 
-import com.mongodb.DBCursor;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CloseableIterator;
 import com.ontotext.oai.europeana.db.RegistryRecord;
-import com.ontotext.oai.europeana.db.mongodb.MongoDbCurosr;
 import org.joda.time.DateTime;
 
 import java.util.Date;
@@ -24,8 +22,8 @@ public class ResumptionToken implements Iterator<RegistryInfo>{
 
 
 
-    public ResumptionToken(DBCursor dbCursor, long id) {
-        this.dbCursor = new MongoDbCurosr<RegistryRecord>(dbCursor);
+    public ResumptionToken(CloseableIterator<RegistryRecord> dbCursor, long id) {
+        this.dbCursor = dbCursor;
         this.id = tokenGen.createTokenId(id);
         DateTime now = new DateTime(new Date());
         expirationDate = now.plusMinutes(EXPIRE_MINUTES).toDate();

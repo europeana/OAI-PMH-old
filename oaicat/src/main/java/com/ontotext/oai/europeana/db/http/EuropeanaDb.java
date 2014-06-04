@@ -1,9 +1,11 @@
-package com.ontotext.oai.europeana.db;
+package com.ontotext.oai.europeana.db.http;
 
 import com.ontotext.oai.europeana.DataSet;
 import com.ontotext.oai.europeana.ListProviders;
 import com.ontotext.oai.europeana.ListSets;
 import com.ontotext.oai.europeana.Provider;
+import com.ontotext.oai.europeana.db.RecordsProvider;
+import com.ontotext.oai.europeana.db.local.LocalCache;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

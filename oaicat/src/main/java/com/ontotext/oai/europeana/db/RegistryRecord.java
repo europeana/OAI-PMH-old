@@ -4,7 +4,7 @@ import com.mongodb.BasicDBObject;
 
 import java.util.Date;
 
-import static com.ontotext.oai.europeana.db.RegistryFields.*;
+import static com.ontotext.oai.europeana.db.mongodb.RegistryFields.*;
 
 /**
  * Created by Simo on 14-1-10.

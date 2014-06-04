@@ -1,4 +1,4 @@
-package com.ontotext.oai.europeana.db;
+package com.ontotext.oai.europeana.db.local;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -41,7 +41,7 @@ public class LocalCache {
         Util.saveFileNoThrow(getRecordFile(recordId), rdf);
     }
 
-    String loadRecord(String recordId) {
+    public String loadRecord(String recordId) {
         return Util.loadFileNoThrow(getRecordFile(recordId));
     }
 
@@ -103,7 +103,7 @@ public class LocalCache {
             public void saveRecord(String recordId, String rdf) {}
 
             @Override
-            String loadRecord(String recordId) { return null; }
+            public String loadRecord(String recordId) { return null; }
         };
     }
 }

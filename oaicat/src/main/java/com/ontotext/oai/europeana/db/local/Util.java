@@ -1,4 +1,4 @@
-package com.ontotext.oai.europeana.db;
+package com.ontotext.oai.europeana.db.local;
 
 import org.apache.commons.io.FileUtils;
 

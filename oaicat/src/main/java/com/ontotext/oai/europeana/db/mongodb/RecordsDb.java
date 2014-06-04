@@ -1,7 +1,8 @@
-package com.ontotext.oai.europeana.db;
+package com.ontotext.oai.europeana.db.mongodb;
 
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
+import com.ontotext.oai.europeana.db.RecordsProvider;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.solr.server.EdmMongoServer;
 import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
