@@ -22,10 +22,6 @@ public class RegistryRecord extends BasicDBObject {
         return super.getDate(KEY_DATE);
     }
 
-    public String orig() {
-        return super.getString(KEY_ORIGINAL_ID);
-    }
-
     public boolean deleted() {
         return super.getBoolean(KEY_DELETED, false);
     }

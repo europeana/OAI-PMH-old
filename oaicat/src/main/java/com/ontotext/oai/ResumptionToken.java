@@ -2,7 +2,9 @@ package com.ontotext.oai;
 
 import com.mongodb.DBCursor;
 import com.ontotext.oai.europeana.RegistryInfo;
+import com.ontotext.oai.europeana.db.CloseableIterator;
 import com.ontotext.oai.europeana.db.RegistryRecord;
+import com.ontotext.oai.europeana.db.mongodb.MongoDbCurosr;
 import org.joda.time.DateTime;
 
 import java.util.Date;
@@ -13,7 +15,7 @@ import java.util.Random;
  * Created by Simo on 14-1-21.
  */
 public class ResumptionToken implements Iterator<RegistryInfo>{
-    private final DBCursor dbCursor;
+    private final CloseableIterator<RegistryRecord> dbCursor;
     private Date expirationDate;
     private final String id;
     private long cursor = 0L;
@@ -23,7 +25,7 @@ public class ResumptionToken implements Iterator<RegistryInfo>{
 
 
     public ResumptionToken(DBCursor dbCursor, long id) {
-        this.dbCursor = dbCursor;
+        this.dbCursor = new MongoDbCurosr<RegistryRecord>(dbCursor);
         this.id = tokenGen.createTokenId(id);
         DateTime now = new DateTime(new Date());
         expirationDate = now.plusMinutes(EXPIRE_MINUTES).toDate();
@@ -48,11 +50,10 @@ public class ResumptionToken implements Iterator<RegistryInfo>{
 
     @Override
     public RegistryInfo next() {
-        RegistryRecord record = (RegistryRecord) dbCursor.next();
+        RegistryRecord record = dbCursor.next();
         String cid = record.cid();
         String eid = record.eid();
         Date date = record.last_checked();
-        String orig = record.orig();
         boolean deleted = record.deleted();
         // TODO: temp patch until 'deleted' flag became correct.
         if (!deleted) {
@@ -61,7 +62,7 @@ public class ResumptionToken implements Iterator<RegistryInfo>{
         DateTime now = new DateTime(new Date());
         expirationDate = now.plusMinutes(EXPIRE_MINUTES).toDate();
 
-        return  new RegistryInfo(cid, eid, date, orig, deleted);
+        return  new RegistryInfo(cid, eid, date, deleted);
     }
 
     @Override
