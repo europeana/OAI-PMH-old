@@ -3,8 +3,8 @@ package com.ontotext.oai.europeana.db.mongodb;
 import com.mongodb.*;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CloseableIterator;
+import com.ontotext.oai.europeana.db.mongodb.MongoRecordsRegistry;
 import com.ontotext.oai.europeana.db.RecordsRegistry;
-import com.ontotext.oai.europeana.db.RegistryRecord;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -39,7 +39,7 @@ public class EuropeanaRegistry implements RecordsRegistry {
             mongoClient = new MongoClient(new ServerAddress(host, port), credentials);
             mongoDb = mongoClient.getDB(dbName);
             registry = mongoDb.getCollection(registryName);
-            registry.setObjectClass(RegistryRecord.class);
+            registry.setObjectClass(MongoRecordsRegistry.class);
             registry.ensureIndex(mongoUtil.queryIndexDate());
             registry.ensureIndex(mongoUtil.queryIndexSetDate());
         } catch (UnknownHostException e) {
@@ -51,7 +51,7 @@ public class EuropeanaRegistry implements RecordsRegistry {
         RegistryInfo registryInfo = null;
         try {
             if (dbCursor.hasNext()) {
-                RegistryRecord record = (RegistryRecord) dbCursor.next();
+                MongoRecordsRegistry record = (MongoRecordsRegistry) dbCursor.next();
                 String cid = record.cid();
                 Date date = record.last_checked();
                 boolean deleted = record.deleted();
@@ -64,8 +64,8 @@ public class EuropeanaRegistry implements RecordsRegistry {
         return registryInfo;
     }
 
-    public CloseableIterator<RegistryRecord> listRecords(Date from, Date until, String setId) {
-        return new MongoDbCurosr<RegistryRecord>(registry.find(mongoUtil.queryDateRange(setId,  from, until)).batchSize(batchSize));
+    public CloseableIterator<RegistryInfo> listRecords(Date from, Date until, String setId) {
+        return new MongoDbCurosr<RegistryInfo>(registry.find(mongoUtil.queryDateRange(setId,  from, until)).batchSize(batchSize));
     }
 
     public void close() {
