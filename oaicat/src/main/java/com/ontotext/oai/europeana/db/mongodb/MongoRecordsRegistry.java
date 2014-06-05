@@ -1,4 +1,4 @@
-package com.ontotext.oai.europeana.db;
+package com.ontotext.oai.europeana.db.mongodb;
 
 import com.mongodb.BasicDBObject;
 
@@ -9,7 +9,7 @@ import static com.ontotext.oai.europeana.db.mongodb.RegistryFields.*;
 /**
  * Created by Simo on 14-1-10.
  */
-public class RegistryRecord extends BasicDBObject {
+public class MongoRecordsRegistry extends BasicDBObject {
     public String eid() {
         return super.getString(KEY_RECORD_ID);
     }
