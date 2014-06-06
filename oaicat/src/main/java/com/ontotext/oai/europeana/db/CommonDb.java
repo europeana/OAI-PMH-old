@@ -3,8 +3,8 @@ package com.ontotext.oai.europeana.db;
 import com.ontotext.oai.europeana.DataSet;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.http.EuropeanaDb;
-import com.ontotext.oai.europeana.db.mongodb.EuropeanaRegistry;
 import com.ontotext.oai.europeana.db.mongodb.RecordsDb;
+import com.ontotext.oai.europeana.db.solr.SolrRegistry;
 
 import java.util.Date;
 import java.util.List;
@@ -21,7 +21,7 @@ public class CommonDb {
     // common methods
     public CommonDb(Properties properties) {
         europeanaDb = new EuropeanaDb(properties);
-        europeanaRegistry = new EuropeanaRegistry(properties);
+        europeanaRegistry = new SolrRegistry(properties);
         boolean disabledRecordsDb = Boolean.parseBoolean(properties.getProperty("RecordsDb.disabled", "false"));
         if (disabledRecordsDb) {
             recordsDb = europeanaDb; // for development purposes only
