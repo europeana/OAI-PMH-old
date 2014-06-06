@@ -3,7 +3,6 @@ package com.ontotext.oai.europeana.db.mongodb;
 import com.mongodb.*;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CloseableIterator;
-import com.ontotext.oai.europeana.db.mongodb.MongoRecordsRegistry;
 import com.ontotext.oai.europeana.db.RecordsRegistry;
 
 import java.net.UnknownHostException;
@@ -65,7 +64,7 @@ public class EuropeanaRegistry implements RecordsRegistry {
     }
 
     public CloseableIterator<RegistryInfo> listRecords(Date from, Date until, String setId) {
-        return new MongoDbCurosr<RegistryInfo>(registry.find(mongoUtil.queryDateRange(setId,  from, until)).batchSize(batchSize));
+        return new MongoRegistryIterator(registry.find(mongoUtil.queryDateRange(setId,  from, until)).batchSize(batchSize));
     }
 
     public void close() {

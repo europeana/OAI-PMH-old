@@ -50,7 +50,7 @@ public class CommonDb {
         return europeanaRegistry.getRegistryInfo(recordId);
     }
 
-    public CloseableIterator<RegistryRecord> listRecords(Date from, Date until, String setId) {
+    public CloseableIterator<RegistryInfo> listRecords(Date from, Date until, String setId) {
         return europeanaRegistry.listRecords(from, until, setId);
     }
 }

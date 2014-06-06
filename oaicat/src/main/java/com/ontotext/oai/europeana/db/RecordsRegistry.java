@@ -9,6 +9,6 @@ import java.util.Date;
  */
 public interface RecordsRegistry {
     RegistryInfo getRegistryInfo(String recordId);
-    CloseableIterator<RegistryRecord> listRecords(Date from, Date until, String setId);
+    CloseableIterator<RegistryInfo> listRecords(Date from, Date until, String setId);
     void close();
 }

@@ -9,7 +9,6 @@ import com.ontotext.oai.europeana.DataSet;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CloseableIterator;
 import com.ontotext.oai.europeana.db.CommonDb;
-import com.ontotext.oai.europeana.db.RegistryRecord;
 import com.ontotext.oai.server.iterator.HeadersIterator;
 import com.ontotext.oai.server.iterator.IdentifiersIterator;
 import com.ontotext.oai.util.Callback;
@@ -148,7 +147,7 @@ public class MongoDbCatalog extends AbstractCatalog {
             log.error(e);
             throw new BadArgumentException();
         }
-        CloseableIterator<RegistryRecord> dbCursor = db.listRecords(dateFrom, dateUntil, set);
+        CloseableIterator<RegistryInfo> dbCursor = db.listRecords(dateFrom, dateUntil, set);
         ResumptionToken token = new ResumptionToken(dbCursor, id_inc++);
         ResumptionToken oldToken = resumptionMap.get(token.getId());
         if (oldToken != null) {
