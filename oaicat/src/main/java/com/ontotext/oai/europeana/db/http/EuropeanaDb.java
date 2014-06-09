@@ -5,6 +5,7 @@ import com.ontotext.oai.europeana.ListProviders;
 import com.ontotext.oai.europeana.ListSets;
 import com.ontotext.oai.europeana.Provider;
 import com.ontotext.oai.europeana.db.RecordsProvider;
+import com.ontotext.oai.europeana.db.SetsProvider;
 import com.ontotext.oai.europeana.db.local.LocalCache;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -14,13 +15,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
 /**
  * Created by Simo on 13-12-12.
  */
-public class EuropeanaDb implements RecordsProvider {
+public class EuropeanaDb implements RecordsProvider, SetsProvider {
     private String apiKey;
     private String baseUrl;
 
@@ -69,7 +71,7 @@ public class EuropeanaDb implements RecordsProvider {
         return rdf;
     }
 
-    public List<DataSet> listSets() {
+    public Iterator<DataSet> listSets() {
         List<DataSet> sets = new ArrayList<DataSet>();
         try {
             String jsonProviders = getProvidersJson();
@@ -84,7 +86,7 @@ public class EuropeanaDb implements RecordsProvider {
             e.printStackTrace();
         }
 
-        return sets;
+        return sets.iterator();
     }
 
     private String getProvidersJson() throws IOException {
@@ -153,7 +155,7 @@ public class EuropeanaDb implements RecordsProvider {
         Properties properties = new Properties();
 
         EuropeanaDb db = new EuropeanaDb(properties);
-        List<DataSet> sets = db.listSets();
+        Iterator<DataSet> sets = db.listSets();
         System.out.println(sets);
     }
 }

@@ -82,9 +82,9 @@ public class MongoDbCatalog extends AbstractCatalog {
 
     @Override
     public Map listSets() throws NoSetHierarchyException, OAIInternalServerError {
-        List<DataSet> europeanaCollections = db.listSets();
+        Iterator<DataSet> europeanaCollections = db.listSets();
         Map <String, Object> m = new HashMap<String, Object>();
-        m.put("sets", new XmlDataSetIterator(europeanaCollections.iterator()));
+        m.put("sets", new XmlDataSetIterator(europeanaCollections));
 
         return m;
     }
