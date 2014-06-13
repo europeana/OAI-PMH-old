@@ -315,13 +315,12 @@ public class MongoDbCatalog extends AbstractCatalog {
     }
 
     private String dataSet2Xml(DataSet ds) {
-        RecordFactory rf = getRecordFactory();
-//        rf.createHeader();
         StringBuilder sb = new StringBuilder(200);
         if (ds != null) {
             sb.append("<set>");
             if (ds.identifier != null) {
-                sb.append("<setSpec>").append(ds.identifier).append("</setSpec>");
+                String setId = StringEscapeUtils.escapeXml(ds.identifier);
+                sb.append("<setSpec>").append(setId).append("</setSpec>");
             }
             if (ds.name != null) {
                 String setName = StringEscapeUtils.escapeXml(ds.name);
