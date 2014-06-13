@@ -43,8 +43,8 @@ public class SolrQueryBuilder {
     public static SolrQuery listSets() {
         int facetLimit = 1000;
         SolrQuery query = new SolrQuery("*:*");
-        query.setFields("europeana_collectionName");
-        query.addFacetField("europeana_collectionName");
+        query.setFields(COLLECTION_NAME);
+        query.addFacetField(COLLECTION_NAME);
         query.setFacet(true);
         query.setFacetLimit(facetLimit);
 

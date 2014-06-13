@@ -1,30 +1,30 @@
 package com.ontotext.oai.europeana.db.solr;
 
+import com.ontotext.oai.europeana.DataSet;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CloseableIterator;
 import com.ontotext.oai.europeana.db.RecordsRegistry;
-import com.ontotext.oai.util.DateConverter;
+import com.ontotext.oai.europeana.db.SetsProvider;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Properties;
+import java.util.*;
 
 import static com.ontotext.oai.europeana.db.solr.FieldNames.*;
 
 /**
  * Created by Simo on 4.6.2014 г..
  */
-public class SolrRegistry implements RecordsRegistry {
+public class SolrRegistry implements RecordsRegistry, SetsProvider {
     private static final Log log = LogFactory.getLog(SolrRegistry.class);
-    DateConverter dateConverter = new DateConverter();
     HttpSolrServer server;
     final int rows;
     RegistryInfo cachedRegistryInfo = null;
@@ -64,10 +64,14 @@ public class SolrRegistry implements RecordsRegistry {
 
     @Override
     public CloseableIterator<RegistryInfo> listRecords(Date from, Date until, String collectionName) {
-        SolrQuery query = SolrQueryBuilder.listRecords(
-                dateConverter.toIsoDate(from), dateConverter.toIsoDate(until),
-                collectionName, rows);
+        SolrQuery query = SolrQueryBuilder.listRecords(from, until, collectionName, rows);
         return new QueryIterator(query, collectionName);
+    }
+
+    @Override
+    public Iterator<DataSet> listSets() {
+        SolrQuery query = SolrQueryBuilder.listSets();
+        return new FacetIterator(query);
     }
 
     @Override
@@ -83,6 +87,7 @@ public class SolrRegistry implements RecordsRegistry {
             ArrayList<String> arr = (ArrayList<String>)document.getFieldValue(COLLECTION_NAME);
             if (!arr.isEmpty()) {
                 cid = arr.get(0);
+                cid = StringEscapeUtils.escapeXml(cid);
             } else {
                 log.fatal("Collection name is missing!");
             }
@@ -102,7 +107,7 @@ public class SolrRegistry implements RecordsRegistry {
 
         public QueryIterator(SolrQuery query, String cid) {
             this.query = query;
-            this.fixed_cid = cid;
+            this.fixed_cid = StringEscapeUtils.escapeXml(cid);
             getMore(0);
         }
 
@@ -148,4 +153,61 @@ public class SolrRegistry implements RecordsRegistry {
             return false;
         }
     }
+
+    private class FacetIterator implements CloseableIterator<DataSet> {
+
+        private final SolrQuery query;
+        private List<FacetField.Count> names;
+        int currentIndex;
+        int offset = 0;
+
+        public FacetIterator(SolrQuery query) {
+            this.query = query;
+            getMore();
+        }
+
+        @Override
+        public void close() {
+
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (names != null && currentIndex < names.size()) {
+                return true;
+            }
+
+            return getMore();
+        }
+
+        @Override
+        public DataSet next() {
+            FacetField.Count nameCount = names.get(currentIndex++);
+            String name = nameCount.getName(); // escapeXml in dataSet2Xml
+            return new DataSet(name, null); // name is id here
+        }
+
+        @Override
+        public void remove() {
+
+        }
+
+        private boolean getMore() {
+            SolrQueryBuilder.setFacetOffset(query, offset);
+            offset += query.getFacetLimit();
+            try {
+                QueryResponse response = server.query(query);
+                FacetField collectionNames = response.getFacetField(COLLECTION_NAME);
+
+                currentIndex = 0;
+                names = collectionNames.getValues();
+                return !names.isEmpty();
+            } catch (SolrServerException e) {
+                log.fatal("Error executing Solr query", e);
+            }
+
+            return false;
+        }
+    }
+
 }

@@ -21,8 +21,9 @@ public class CommonDb {
     // common methods
     public CommonDb(Properties properties) {
         EuropeanaDb europeanaDb = new EuropeanaDb(properties);
-        sets = europeanaDb;
-        registry = new SolrRegistry(properties);
+        SolrRegistry solrRegistry = new SolrRegistry(properties);
+        sets = solrRegistry;
+        registry = solrRegistry;
         boolean disabledRecordsDb = Boolean.parseBoolean(properties.getProperty("RecordsDb.disabled", "false"));
         if (disabledRecordsDb) {
             records = europeanaDb; // for development purposes only
