@@ -1,9 +1,6 @@
 package com.ontotext;
 
 import com.ontotext.iterator.SetsIteratorAdaptor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.dom4j.Element;
 import com.ontotext.process.ListProcessor;
 import com.ontotext.process.RecordProcessor;
 import com.ontotext.process.list.ListProcessorHub;
@@ -12,17 +9,21 @@ import com.ontotext.process.record.CountRecords;
 import com.ontotext.process.record.EmptyRecordProcessor;
 import com.ontotext.process.record.SearchString;
 import com.ontotext.query.QueryListRecords;
-import org.openrdf.rio.RDFParserFactory;
-import org.openrdf.rio.RDFParserRegistry;
+import com.ontotext.stats.SetStats;
+import com.ontotext.walk.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dom4j.Element;
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.oai.pmh.SetsList;
-import com.ontotext.stats.SetStats;
-import com.ontotext.walk.*;
 
-import javax.management.*;
+import javax.management.MBeanException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.OperationsException;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.util.*;
