@@ -1,12 +1,14 @@
 package com.ontotext.process;
 
 import org.apache.commons.logging.LogFactory;
+import org.dom4j.Element;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.http.HTTPRepository;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
+import se.kb.oai.pmh.Header;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.xml.XMLUtils;
@@ -94,12 +96,17 @@ public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProc
         ByteArrayOutputStream metadataStream = new ByteArrayOutputStream(BUFFER_SIZE);
 
         try {
-            XMLUtils.writeXmlTo(record.getMetadata(), metadataStream);
-            repository.add(new ByteArrayInputStream(metadataStream.toByteArray()), "", RDFFormat.RDFXML);
+            Element metadata = record.getMetadata();
+            if (metadata == null) {
+                System.out.println("Error: " + "No metadata, Record: " + getRecordId(record));
+            } else {
+                XMLUtils.writeXmlTo(record.getMetadata(), metadataStream);
+                repository.add(new ByteArrayInputStream(metadataStream.toByteArray()), "", RDFFormat.RDFXML);
+            }
         } catch (RepositoryException e) {
             e.printStackTrace();
         } catch (RDFParseException e) {
-            out.println("Record: " + record.getHeader().getIdentifier() + " Error: " + e.getMessage());
+            out.println("Record: " + getRecordId(record) + " Error: " + e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -108,4 +115,17 @@ public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProc
     public void processRecordEnd() {
 
     }
+
+    private static String getRecordId(Record record) {
+        String id = null;
+        if (record != null) {
+            Header header = record.getHeader();
+            if (header != null) {
+                id = header.getIdentifier();
+            }
+        }
+
+        return id;
+    }
+
 }
