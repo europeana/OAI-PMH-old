@@ -28,11 +28,13 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
     HttpSolrServer server;
     final int rows;
     RegistryInfo cachedRegistryInfo = null;
+    private final int maxStart;
 
     public SolrRegistry(Properties properties) {
         String baseUrl = properties.getProperty("SolrRegistry.server", "http://data2.eanadev.org:9191/solr");
         server = new HttpSolrServer(baseUrl);
-        rows = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "100"));
+        rows = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "1000"));
+        maxStart = Integer.parseInt(properties.getProperty("SolrRegistry.maxStart", "100000"));
     }
 
     @Override
@@ -137,8 +139,28 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         }
 
         private boolean getMore(int start) {
-            query.setStart(start);
+            if (start > maxStart) {
+                return regenQuery();
+            }
 
+            query.setStart(start);
+            return fetch();
+        }
+
+        private boolean regenQuery() {
+            if (cachedRegistryInfo != null) {
+                SolrQueryBuilder.filterDateFrom(query, cachedRegistryInfo.last_checked);
+                query.setStart(0);
+                if (fetch()) {
+                    skip(cachedRegistryInfo.eid);
+                    return currentIndex != resultList.size();
+                }
+            }
+
+            return false;
+        }
+
+        private boolean fetch() {
             try {
                 log.trace("Getting more records");
                 QueryResponse response = server.query(query);
@@ -152,6 +174,18 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
             return false;
         }
+
+        private void skip(String eid) {
+            for (int i = 0; i != resultList.size(); ++i) {
+                SolrDocument document = resultList.get(i);
+                RegistryInfo registryInfo = toRegistryInfo(document, fixed_cid);
+                if (eid.equals(registryInfo.eid)) {
+                    currentIndex = i + 1;
+                    break;
+                }
+            }
+        }
+
     }
 
     private class FacetIterator implements CloseableIterator<DataSet> {

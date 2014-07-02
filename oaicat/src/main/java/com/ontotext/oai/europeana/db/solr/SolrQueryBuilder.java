@@ -2,6 +2,7 @@ package com.ontotext.oai.europeana.db.solr;
 
 import com.ontotext.oai.util.DateConverter;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.FacetParams;
 
 import java.util.Date;
@@ -85,5 +86,11 @@ public class SolrQueryBuilder {
         }
 
         return q.toString();
+    }
+
+    public static void filterDateFrom(SolrQuery query, Date fromDate) {
+        String from = dateConverter.toIsoDate(fromDate);
+        String filterQuery = FieldNames.TIMESTAMP + ":[" + from + " TO *]";
+        query.set(CommonParams.FQ, filterQuery);
     }
 }
