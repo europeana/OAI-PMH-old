@@ -1,10 +1,10 @@
 package com.ontotext.walk;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.ontotext.process.ListProcessor;
 import com.ontotext.process.RecordProcessor;
 import com.ontotext.query.QueryListRecords;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import se.kb.oai.OAIException;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.Record;
@@ -52,7 +52,11 @@ public class ListRecordsWalker implements Runnable {
                 break;
             }
             recordsList = server.listRecords(resumptionToken);
-        } while (true);
+        } while (recordsList.size() > 0);
+    }
+
+    private RecordsList listRecords(QueryListRecords query) throws OAIException {
+        return server.listRecords(query.prefix, query.from, query.until, query.set);
     }
 
     public void run() {
@@ -63,7 +67,4 @@ public class ListRecordsWalker implements Runnable {
         }
     }
 
-    private RecordsList listRecords(QueryListRecords query) throws OAIException {
-        return server.listRecords(query.prefix, query.from, query.until, query.set);
-    }
 }
