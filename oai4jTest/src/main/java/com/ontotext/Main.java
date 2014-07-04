@@ -11,6 +11,7 @@ import com.ontotext.process.record.SearchString;
 import com.ontotext.query.QueryListRecords;
 import com.ontotext.stats.SetStats;
 import com.ontotext.walk.*;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
@@ -272,6 +273,28 @@ public class Main implements Runnable {
     }
 
     public void run() {
+        Navigator<RecordsList> navigator = new StandardNavigator();
+        EmptyRecordProcessor emptyRecordProcessor = new EmptyRecordProcessor();
+        try {
+            List<String> sets = FileUtils.readLines(new File("sets.txt"), "UTF-8");
+            if (!sets.isEmpty()) {
+                for (String set : sets) {
+                    log.info("Start set: " + set);
+                    QueryListRecords setQuery = new QueryListRecords(query.from,  query.until,  set);
+                    ListRecordsWalker walker = new ListRecordsWalker(
+                            server, new EmptyRecordProcessor(), listProcessor, setQuery, navigator);
+                    walker.run();
+                    listProcessor.processListFinish();
+                    log.info("End set: " + set);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void run1() {
 
 
 

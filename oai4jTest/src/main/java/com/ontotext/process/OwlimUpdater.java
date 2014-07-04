@@ -73,15 +73,16 @@ public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProc
     }
 
     public void processListFinish() {
-        if (repository == null) {
-            return;
-        }
-
-        try {
-            repository.close();
-        } catch (RepositoryException e) {
-            e.printStackTrace();
-        }
+        // TODO: temp
+//        if (repository == null) {
+//            return;
+//        }
+//
+//        try {
+//            repository.close();
+//        } catch (RepositoryException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public void processListError(Exception e) {
