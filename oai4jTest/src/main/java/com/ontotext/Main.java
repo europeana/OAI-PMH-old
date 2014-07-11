@@ -279,12 +279,20 @@ public class Main implements Runnable {
             List<String> sets = FileUtils.readLines(new File("sets.txt"), "UTF-8");
             if (!sets.isEmpty()) {
                 for (String set : sets) {
-                    log.info("Start set: " + set);
-                    QueryListRecords setQuery = new QueryListRecords(query.from,  query.until,  set);
-                    ListRecordsWalker walker = new ListRecordsWalker(
-                            server, new EmptyRecordProcessor(), listProcessor, setQuery, navigator);
-                    walker.run();
-                    listProcessor.processListFinish();
+                    try {
+                        log.info("Start set: " + set);
+                        QueryListRecords setQuery = new QueryListRecords(query.from, query.until, set);
+                        ListRecordsWalker walker = new ListRecordsWalker(
+                                server, new EmptyRecordProcessor(), listProcessor, setQuery, navigator);
+                        walker.run();
+                    } catch (Exception e) {
+                        log.error("Set: " + set, e);
+                        throw new RuntimeException(e);
+                    }
+                    finally {
+                        listProcessor.processListFinish();
+                    }
+
                     log.info("End set: " + set);
                 }
             }
@@ -312,8 +320,11 @@ public class Main implements Runnable {
 
         ListRecordsWalker walker = new ListRecordsWalker(
                 server, new EmptyRecordProcessor(), listProcessor, query, navigator);
-        walker.run();
-        listProcessor.processListFinish();
+        try {
+            walker.run();
+        } finally {
+            listProcessor.processListFinish();
+        }
     }
 
     public static void main(String[] args) {

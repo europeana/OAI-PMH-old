@@ -1,5 +1,6 @@
 package com.ontotext.process;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
 import org.openrdf.repository.Repository;
@@ -21,27 +22,29 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-3-12.
  */
-public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProcessor {
+public class OwlimUpdater implements RecordProcessor, ListProcessor {
+    private static Log log = LogFactory.getLog(OwlimUpdater.class);
     RepositoryConnection repository;
-    private final int BUFFER_SIZE = 10*1024*1024; // 10 MB
+    private static final int BUFFER_SIZE = 10*1024*1024; // 10 MB
+    String server;
+    String repositoryID;
     public OwlimUpdater(Properties properties) {
-        super(properties.getProperty("OwlimUpdater.logFile"), LogFactory.getLog(OwlimUpdater.class));
-        String server = properties.getProperty("OwlimUpdater.server", "http://localhost:8080/openrdf-sesame");
-        String repositoryID = properties.getProperty("OwlimUpdater.repositoryID" ,"europeana");
+        server = properties.getProperty("OwlimUpdater.server", "http://localhost:8080/openrdf-sesame");
+        repositoryID = properties.getProperty("OwlimUpdater.repositoryID" ,"europeana");
         repository = getConnection(server,  repositoryID);
-
     }
 
-    private static RepositoryConnection getConnection(String sesameServer, String repositoryID) {
+    private RepositoryConnection getConnection(String sesameServer, String repositoryID) {
         Repository repo = new HTTPRepository(sesameServer, repositoryID);
         RepositoryConnection connection = null;
 
         try {
+            log.info("repo init() start");
             repo.initialize();
             connection = repo.getConnection();
-
+            log.info("repo init() end");
         } catch (RepositoryException e) {
-            e.printStackTrace();
+            log.error("repo init()", e);
         }
 
         return connection;
@@ -50,39 +53,47 @@ public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProc
 
     public void processListBegin(RecordsList recordsList) {
         if (repository == null) {
+            log.error("repo is null");
             return;
         }
 
         try {
+            log.info("repo begin() start");
             repository.begin();
+            log.info("repo begin() end");
         } catch (RepositoryException e) {
-            e.printStackTrace();
+            log.error("begin()", e);
         }
     }
 
     public void processListEnd(RecordsList recordsList) {
         if (repository == null) {
+            log.error("repo is null");
             return;
         }
 
         try {
+            log.info("OWLIM Commit start");
             repository.commit();
+            log.info("OWLIM Commit end");
         } catch (RepositoryException e) {
-            e.printStackTrace();
+            log.error("Exception on repo commit", e);
         }
     }
 
     public void processListFinish() {
         // TODO: temp
-//        if (repository == null) {
-//            return;
-//        }
-//
-//        try {
-//            repository.close();
-//        } catch (RepositoryException e) {
-//            e.printStackTrace();
-//        }
+        if (repository == null) {
+            return;
+        }
+
+        try {
+            log.info("repo close()");
+            repository.close();
+            repository = getConnection(server,  repositoryID);
+        } catch (RepositoryException e) {
+            e.printStackTrace();
+        }
     }
 
     public void processListError(Exception e) {
@@ -91,6 +102,7 @@ public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProc
 
     public void processRecord(Record record) {
         if (repository == null) {
+            log.error("repo is null");
             return;
         }
 
@@ -99,17 +111,17 @@ public class OwlimUpdater extends OutHolder implements RecordProcessor, ListProc
         try {
             Element metadata = record.getMetadata();
             if (metadata == null) {
-                System.out.println("Error: " + "No metadata, Record: " + getRecordId(record));
+                log.warn("No metadata, Record: " + getRecordId(record));
             } else {
-                XMLUtils.writeXmlTo(record.getMetadata(), metadataStream);
+                XMLUtils.writeXmlTo(metadata, metadataStream);
                 repository.add(new ByteArrayInputStream(metadataStream.toByteArray()), "", RDFFormat.RDFXML);
             }
         } catch (RepositoryException e) {
-            e.printStackTrace();
+            log.error("repo add(" + getRecordId(record) + ")", e);
         } catch (RDFParseException e) {
-            out.println("Record: " + getRecordId(record) + " Error: " + e.getMessage());
+            log.warn("Record: " + getRecordId(record) + " Error: " + e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("processRecord() IO", e);
         }
     }
 

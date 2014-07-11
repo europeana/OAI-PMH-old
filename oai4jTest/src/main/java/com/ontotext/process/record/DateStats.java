@@ -31,11 +31,11 @@ public class DateStats extends OutHolder implements RecordProcessor {
             }
 
             lastDate = date;
-            if (flushCount != 0) {
-                if (++count % flushCount == 0) {
-                    print();
-                    out.flush();
-                }
+            ++count;
+            if (flushCount == 0 || count % flushCount == 0) {
+                print();
+                out.flush();
+                firstDate = null;
             }
         }
     }
@@ -46,16 +46,8 @@ public class DateStats extends OutHolder implements RecordProcessor {
     }
 
     public void print() {
-        out.println(getMinDate());
-        out.println(getMaxDate());
+        out.println(firstDate);
+        out.println(lastDate);
         out.println();
-    }
-
-    public String getMinDate() {
-        return firstDate;
-    }
-
-    public String getMaxDate() {
-        return lastDate;
     }
 }

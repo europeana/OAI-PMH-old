@@ -139,9 +139,10 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         }
 
         private boolean getMore(int start) {
-            if (start > maxStart) {
-                return regenQuery();
-            }
+            // TODO
+//            if (start > maxStart) {
+//                return regenQuery();
+//            }
 
             query.setStart(start);
             return fetch();
