@@ -1,9 +1,9 @@
 package com.ontotext.process.record;
 
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.logging.LogFactory;
-import com.ontotext.process.OutHolder;
 import com.ontotext.process.RecordProcessor;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import se.kb.oai.pmh.Header;
 import se.kb.oai.pmh.Record;
 
@@ -15,11 +15,11 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-2-11.
  */
-public class CollectionsStats extends OutHolder implements RecordProcessor {
+public class CollectionsStats implements RecordProcessor {
+    private static Log log = LogFactory.getLog(CollectionsStats.class);
     Map<String, MutablePair<Integer, Integer>> statsMap = new HashMap<String, MutablePair<Integer, Integer>>(20000);
 
     public CollectionsStats(Properties properties) {
-        super(properties.getProperty("CollectionsStats.logFile"), LogFactory.getLog(CollectionsStats.class));
     }
 
     public void processRecord(Record record) {
@@ -35,7 +35,7 @@ public class CollectionsStats extends OutHolder implements RecordProcessor {
             MutablePair<Integer, Integer> good_bad = entry.getValue();
             int good = good_bad.left;
             int bad = good_bad.right;
-            System.out.println(entry.getKey() + "\t" + good + "\t" + bad);
+            log.info(entry.getKey() + "\t" + good + "\t" + bad);
         }
     }
 
@@ -43,7 +43,7 @@ public class CollectionsStats extends OutHolder implements RecordProcessor {
         if (setId.size() == 1) {
             add(setId.get(0), good);
         } else {
-            System.out.println("Not one Id! Size(): " + setId.size());
+            log.error("Not one Id! Size(): " + setId.size());
         }
     }
 

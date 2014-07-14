@@ -1,8 +1,8 @@
 package com.ontotext.process.list;
 
-import org.apache.commons.logging.LogFactory;
 import com.ontotext.process.ListProcessor;
-import com.ontotext.process.OutHolder;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import se.kb.oai.pmh.RecordsList;
 
 import java.util.Properties;
@@ -10,9 +10,9 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-1-30.
  */
-public class TraceListProcessor extends OutHolder implements ListProcessor {
+public class TraceListProcessor implements ListProcessor {
+    private static final Log log = LogFactory.getLog(TraceListProcessor.class);
     public TraceListProcessor(Properties properties) {
-        super(properties.getProperty("TraceListProcessor.logFile"), LogFactory.getLog(TraceListProcessor.class));
     }
 
     long page = 0L;
@@ -29,8 +29,7 @@ public class TraceListProcessor extends OutHolder implements ListProcessor {
     }
 
     public void processListFinish() {
-        out.println("TOTAL:\nPage: " + page + " Offset: " + offset);
-        super.close();
+        log.info("TOTAL:\nPage: " + page + " Offset: " + offset);
     }
 
     public void processListError(Exception e) {

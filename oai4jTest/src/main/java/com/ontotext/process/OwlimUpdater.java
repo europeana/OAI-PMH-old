@@ -28,6 +28,8 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
     private static final int BUFFER_SIZE = 10*1024*1024; // 10 MB
     String server;
     String repositoryID;
+    int numRecords;
+    int badRecords;
     public OwlimUpdater(Properties properties) {
         server = properties.getProperty("OwlimUpdater.server", "http://localhost:8080/openrdf-sesame");
         repositoryID = properties.getProperty("OwlimUpdater.repositoryID" ,"europeana");
@@ -87,6 +89,9 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
             return;
         }
 
+        printStats();
+        clearStats();
+
         try {
             log.info("repo close()");
             repository.close();
@@ -126,7 +131,7 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
     }
 
     public void processRecordEnd() {
-
+        log.info("processRecordEnd");
     }
 
     private static String getRecordId(Record record) {
@@ -139,6 +144,16 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
         }
 
         return id;
+    }
+
+    private void clearStats() {
+        numRecords = 0;
+        badRecords = 0;
+    }
+
+    private void printStats() {
+        log.info("Num records:" + numRecords );
+        log.info("Bad records:" + badRecords);
     }
 
 }

@@ -1,8 +1,8 @@
 package com.ontotext.process.record;
 
-import org.apache.commons.logging.LogFactory;
-import com.ontotext.process.OutHolder;
 import com.ontotext.process.RecordProcessor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import se.kb.oai.pmh.Header;
 import se.kb.oai.pmh.Record;
 
@@ -11,14 +11,12 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-3-4.
  */
-public class DateStats extends OutHolder implements RecordProcessor {
-    private String firstDate = null;
-    private String lastDate = null;
+public class DateStats implements RecordProcessor {
+    private static Log log = LogFactory.getLog(DateStats.class);
     private int flushCount;
     long count = 0;
 
     public DateStats(Properties properties) {
-        super(properties.getProperty("DateStats.logFile"), LogFactory.getLog(DateStats.class));
         flushCount = Integer.parseInt(properties.getProperty("DateStats.flushCount", "0"));
     }
 
@@ -26,28 +24,15 @@ public class DateStats extends OutHolder implements RecordProcessor {
         Header header = record.getHeader();
         if (header != null) {
             String date = header.getDatestamp();
-            if (firstDate == null) {
-                firstDate = date;
-            }
-
-            lastDate = date;
             ++count;
             if (flushCount == 0 || count % flushCount == 0) {
-                print();
-                out.flush();
-                firstDate = null;
+                log.info(date);
             }
         }
     }
 
     public void processRecordEnd() {
-        print();
-        close();
+        log.info("Num records: " + count);
     }
 
-    public void print() {
-        out.println(firstDate);
-        out.println(lastDate);
-        out.println();
-    }
 }

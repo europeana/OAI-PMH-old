@@ -1,8 +1,8 @@
 package com.ontotext.process.record;
 
-import org.apache.commons.logging.LogFactory;
-import com.ontotext.process.OutHolder;
 import com.ontotext.process.RecordProcessor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import se.kb.oai.pmh.Record;
 
 import java.util.Properties;
@@ -10,15 +10,15 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-1-30.
  */
-public class CountRecords extends OutHolder implements RecordProcessor {
+public class CountRecords implements RecordProcessor {
+    private static final Log log = LogFactory.getLog(CountRecords.class);
     private int nullRecords = 0;
     private int goodRecords = 0;
     public CountRecords(Properties properties) {
-        super(properties.getProperty("CountRecords.logFile"),  LogFactory.getLog(CountRecords.class));
     }
 
     public void processRecord(Record record) {
-        if (record.getMetadata() == null) {
+        if (record == null || record.getMetadata() == null) {
             ++nullRecords;
         } else {
             ++goodRecords;
@@ -26,7 +26,7 @@ public class CountRecords extends OutHolder implements RecordProcessor {
     }
 
     public void processRecordEnd() {
-        out.println("TOTAL Records:\n Good: " + goodRecords + " Bad: " + nullRecords);
+        log.info("TOTAL Records:\n Good: " + goodRecords + " Bad: " + nullRecords);
     }
 
 
