@@ -60,6 +60,10 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
         }
 
         try {
+            if (repository.isActive()) {
+                log.error("Transaction is active!");
+                return;
+            }
             log.info("repo begin() start");
             repository.begin();
             log.info("repo begin() end");
@@ -84,7 +88,6 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
     }
 
     public void processListFinish() {
-        // TODO: temp
         if (repository == null) {
             return;
         }
@@ -112,6 +115,7 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
         }
 
         ByteArrayOutputStream metadataStream = new ByteArrayOutputStream(BUFFER_SIZE);
+        byte[] metadataBytes = null;
 
         try {
             Element metadata = record.getMetadata();
@@ -119,14 +123,31 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
                 log.warn("No metadata, Record: " + getRecordId(record));
             } else {
                 XMLUtils.writeXmlTo(metadata, metadataStream);
-                repository.add(new ByteArrayInputStream(metadataStream.toByteArray()), "", RDFFormat.RDFXML);
+                metadataBytes = metadataStream.toByteArray();
+                repository.add(new ByteArrayInputStream(metadataBytes), "", RDFFormat.RDFXML);
             }
         } catch (RepositoryException e) {
-            log.error("repo add(" + getRecordId(record) + ")", e);
+            log.error("repo add failed: " + getRecordId(record), e);
+            retryAdd(metadataBytes);
         } catch (RDFParseException e) {
             log.warn("Record: " + getRecordId(record) + " Error: " + e.getMessage());
         } catch (IOException e) {
             log.error("processRecord() IO", e);
+        }
+    }
+
+    /**
+     * When an add failed, all adds till next commit fail too. So force commit and retry once.
+     * @param metadataBytes
+     */
+    private void retryAdd(byte[] metadataBytes) {
+        log.info("Retry add");
+        try {
+            repository.commit();
+            repository.begin();
+            repository.add(new ByteArrayInputStream(metadataBytes), "", RDFFormat.RDFXML);
+        } catch (Exception e) {
+            log.error("Retry add", e);
         }
     }
 
@@ -155,5 +176,4 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
         log.info("Num records:" + numRecords );
         log.info("Bad records:" + badRecords);
     }
-
 }
