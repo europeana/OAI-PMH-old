@@ -2,14 +2,11 @@ package com.ontotext.oai.europeana.db.solr;
 
 import com.ontotext.oai.util.DateConverter;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.FacetParams;
 
 import java.util.Date;
 
-import static com.ontotext.oai.europeana.db.solr.FieldNames.COLLECTION_NAME;
-import static com.ontotext.oai.europeana.db.solr.FieldNames.EID;
-import static com.ontotext.oai.europeana.db.solr.FieldNames.TIMESTAMP;
+import static com.ontotext.oai.europeana.db.solr.FieldNames.*;
 
 /**
  * Created by Simo on 6.6.2014 г..
@@ -88,9 +85,11 @@ public class SolrQueryBuilder {
         return q.toString();
     }
 
-    public static void filterDateFrom(SolrQuery query, Date fromDate) {
-        String from = dateConverter.toIsoDate(fromDate);
-        String filterQuery = FieldNames.TIMESTAMP + ":[" + from + " TO *]";
-        query.set(CommonParams.FQ, filterQuery);
+    public static void changeDateFrom(SolrQuery query, Date fromDate) {
+        String from = DateConverter.toIsoDate2(fromDate);
+        String q = query.getQuery();
+        q = q.replaceAll("\\[.*\\s+TO\\s+", "[" + from + " TO ");
+        query.setQuery(q);
     }
+
 }
