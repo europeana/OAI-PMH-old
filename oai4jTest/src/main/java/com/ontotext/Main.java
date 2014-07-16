@@ -74,9 +74,11 @@ public class Main implements Runnable {
 
     public void run() {
         Navigator<RecordsList> navigator = new StandardNavigator();
-        try {
-            List<String> sets = FileUtils.readLines(new File("sets.txt"), "UTF-8");
-            if (!sets.isEmpty()) {
+        File setsFile = new File("sets.txt");
+        if (setsFile.exists()) {
+            log.info("Starting multiset queries.");
+            try {
+                List<String> sets = FileUtils.readLines(setsFile, "UTF-8");
                 for (String set : sets) {
                     try {
                         log.info("Start set: " + set);
@@ -87,17 +89,17 @@ public class Main implements Runnable {
                     } catch (Exception e) {
                         log.error("Set: " + set, e);
                         throw new RuntimeException(e);
-                    }
-                    finally {
+                    } finally {
                         listProcessor.processListFinish();
                     }
                     log.info("End set: " + set);
                 }
-            } else {
-                run1Query();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
+            log.info("File sets.txt is missing. Starting single query session.");
+            run1Query();
         }
 
     }
