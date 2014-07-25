@@ -10,7 +10,8 @@ import java.util.Date;
  * Created by Simo on 14-1-22.
  */
 public class DateConverter {
-    private final DateTimeFormatter fmt = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC();
+    private static final DateTimeFormatter fmt = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC();
+    private static final DateTimeFormatter fmt2 = ISODateTimeFormat.dateTime().withZoneUTC();
     public Date fromIsoDateTime(String isoDateTime) {
         return new DateTime(isoDateTime).toDate();
     }
@@ -19,11 +20,17 @@ public class DateConverter {
         return fmt.print(new DateTime(date));
     }
 
+    public static String toIsoDate2(Date date) {
+        return fmt2.print(new DateTime(date));
+    }
+
     public static void main(String[] args) {
         DateConverter converter = new DateConverter();
         Date date = converter.fromIsoDateTime("2014-01-15T08:26:57.600Z");
         System.out.println(date);
         String reversed = converter.toIsoDate(date);
+        String reversed2 = toIsoDate2(date);
         System.out.println(reversed);
+        System.out.println(reversed2);
     }
 }
