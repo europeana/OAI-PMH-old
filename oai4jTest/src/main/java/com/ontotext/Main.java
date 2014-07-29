@@ -1,5 +1,6 @@
 package com.ontotext;
 
+import com.ontotext.helper.Util;
 import com.ontotext.process.list.ListProcessorHub;
 import com.ontotext.process.record.EmptyRecordProcessor;
 import com.ontotext.query.QueryListRecords;
@@ -18,7 +19,6 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.OperationsException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Date;
@@ -47,23 +47,6 @@ public class Main implements Runnable {
         numPages = Integer.parseInt(properties.getProperty("numPages", "0"));
     }
 
-    private static Properties loadProperties(String[] args) {
-        Properties properties = new Properties();
-        final String fileName = (args.length == 0) ? "client.properties" : args[0];
-        try {
-            FileInputStream input = new FileInputStream(fileName);
-            try {
-                properties.load(input);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                input.close();
-            }
-        } catch (IOException e) {
-            log.error(e);
-        }
-        return properties;
-    }
 
     private void registerMBean(Navigator navigator) throws OperationsException, MBeanException {
         OaiClientControl control = new OaiClientControl(navigator);
@@ -127,10 +110,15 @@ public class Main implements Runnable {
     }
 
     public static void main(String[] args) {
-        Properties properties = loadProperties(args);
-        Main main = new Main(properties);
-        log.info("Begin: " + new Date());
-        main.run();
-        log.info("End: " + new Date());
+        Properties properties;
+        try {
+            properties = Util.loadProperties(args);
+            Main main = new Main(properties);
+            log.info("Begin: " + new Date());
+            main.run();
+            log.info("End: " + new Date());
+        } catch (IOException e) {
+            log.error(e);
+        }
     }
 }
