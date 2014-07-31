@@ -110,9 +110,8 @@ public class Main implements Runnable {
     }
 
     public static void main(String[] args) {
-        Properties properties;
         try {
-            properties = Util.loadProperties(args);
+            Properties properties = Util.loadProperties(args);
             Main main = new Main(properties);
             log.info("Begin: " + new Date());
             main.run();
