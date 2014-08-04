@@ -149,7 +149,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
         private boolean regenQuery() {
             if (cachedRegistryInfo != null) {
-                SolrQueryBuilder.changeDateFrom(query, cachedRegistryInfo.last_checked);
+//                SolrQueryBuilder.changeDateFrom(query, cachedRegistryInfo.last_checked);
+                SolrQueryBuilder.filterDateFrom(query, cachedRegistryInfo.last_checked);
                 query.setStart(0);
                 if (fetch()) {
                     skip(cachedRegistryInfo.eid);
