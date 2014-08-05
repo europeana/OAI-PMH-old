@@ -56,7 +56,20 @@ public class Main implements Runnable {
     }
 
     public void run() {
-        Navigator<RecordsList> navigator = new StandardNavigator();
+        Navigator<RecordsList> navigator = (numPages == 0)
+                ? new StandardNavigator()
+                : new PageCountNavigator(numPages);
+        try {
+            registerMBean(navigator);
+        } catch (OperationsException e) {
+            e.printStackTrace();
+        } catch (MBeanException e) {
+            e.printStackTrace();
+        }
+
+        if (query != null) {
+            run1Query(navigator);
+        }
         File setsFile = new File("sets.txt");
         if (setsFile.exists()) {
             log.info("Starting multiset queries.");
@@ -65,7 +78,7 @@ public class Main implements Runnable {
                 for (String set : sets) {
                     try {
                         log.info("Start set: " + set);
-                        QueryListRecords setQuery = new QueryListRecords(query.from, query.until, set);
+                        QueryListRecords setQuery = new QueryListRecords(null, null, set);
                         ListRecordsWalker walker = new ListRecordsWalker(
                                 server, new EmptyRecordProcessor(), listProcessor, setQuery, navigator);
                         walker.run();
@@ -78,30 +91,15 @@ public class Main implements Runnable {
                     log.info("End set: " + set);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error(e);
             }
-        } else {
-            log.info("File sets.txt is missing. Starting single query session.");
-            run1Query();
         }
-
     }
 
-    public void run1Query() {
-        Navigator<RecordsList> navigator = (numPages == 0)
-                ? new StandardNavigator()
-                : new PageCountNavigator(numPages);
-
-        try {
-            registerMBean(navigator);
-        } catch (OperationsException e) {
-            e.printStackTrace();
-        } catch (MBeanException e) {
-            e.printStackTrace();
-        }
-
+    public void run1Query(Navigator<RecordsList> navigator) {
         ListRecordsWalker walker = new ListRecordsWalker(
                 server, new EmptyRecordProcessor(), listProcessor, query, navigator);
+        log.info("Single query: " + query);
         try {
             walker.run();
         } finally {
