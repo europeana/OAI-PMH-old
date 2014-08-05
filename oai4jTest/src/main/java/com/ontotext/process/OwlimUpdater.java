@@ -114,6 +114,8 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
             return;
         }
 
+        ++numRecords;
+
         ByteArrayOutputStream metadataStream = new ByteArrayOutputStream(BUFFER_SIZE);
         byte[] metadataBytes = null;
 
@@ -130,6 +132,7 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
             log.error("repo add failed: " + getRecordId(record), e);
             retryAdd(metadataBytes);
         } catch (RDFParseException e) {
+            ++badRecords;
             log.warn("Record: " + getRecordId(record) + " Error: " + e.getMessage());
         } catch (IOException e) {
             log.error("processRecord() IO", e);
