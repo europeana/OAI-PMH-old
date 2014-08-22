@@ -2,8 +2,6 @@ package com.ontotext.oai.europeana.db.solr;
 
 import com.ontotext.oai.util.DateConverter;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.common.params.FacetParams;
 
 import java.util.Date;
 
@@ -50,14 +48,6 @@ public class SolrQueryBuilder {
         return query;
     }
 
-    public static SolrQuery setFacetOffset(SolrQuery query, int offset) {
-        query.set(FacetParams.FACET_OFFSET, offset);
-        return query;
-    }
-
-    public int getFacetOffset(SolrQuery query) {
-        return Integer.parseInt(query.get(FacetParams.FACET_OFFSET));
-    }
     private static String listRecordsQ(String collectionName, Date fromDate, Date untilDate) {
         if (collectionName == null && fromDate == null && untilDate == null) {
             return "*:*";
@@ -84,18 +74,5 @@ public class SolrQueryBuilder {
         }
 
         return q.toString();
-    }
-
-    public static void changeDateFrom(SolrQuery query, Date fromDate) {
-        String from = DateConverter.toIsoDate2(fromDate);
-        String q = query.getQuery();
-        q = q.replaceAll("\\[.*\\s+TO\\s+", "[" + from + " TO ");
-        query.setQuery(q);
-    }
-
-    public static void filterDateFrom(SolrQuery query, Date fromDate) {
-        String from = DateConverter.toIsoDate2(fromDate);
-        String filterQuery = FieldNames.TIMESTAMP + ":[" + from + " TO *]";
-        query.set(CommonParams.FQ, filterQuery);
     }
 }

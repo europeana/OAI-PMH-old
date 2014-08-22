@@ -28,13 +28,11 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
     HttpSolrServer server;
     final int rows;
     RegistryInfo cachedRegistryInfo = null;
-    private final int maxStart;
 
     public SolrRegistry(Properties properties) {
         String baseUrl = properties.getProperty("SolrRegistry.server", "http://data2.eanadev.org:9191/solr");
         server = new HttpSolrServer(baseUrl);
         rows = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "1000"));
-        maxStart = Integer.parseInt(properties.getProperty("SolrRegistry.maxStart", "100000"));
     }
 
     @Override
@@ -103,6 +101,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
     private class QueryIterator implements CloseableIterator<RegistryInfo> {
         private final SolrQuery query;
+        private String cursorMark = SolrHelper.CURSOR_MARK_START;
         private final String fixed_cid; // used to reduce result fields when query has collectionId filter
         SolrDocumentList resultList;
         int currentIndex;
@@ -110,7 +109,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         public QueryIterator(SolrQuery query, String cid) {
             this.query = query;
             this.fixed_cid = StringEscapeUtils.escapeXml(cid);
-            getMore(0);
+            fetch();
         }
 
         @Override
@@ -123,7 +122,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
                 return true;
             }
 
-            return getMore(query.getStart() + query.getRows());
+            return fetch();
         }
 
         @Override
@@ -138,55 +137,33 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
         }
 
-        private boolean getMore(int start) {
-            if (start > maxStart) {
-                return regenQuery();
-            }
-
-            query.setStart(start);
-            return fetch();
-        }
-
-        private boolean regenQuery() {
-            if (cachedRegistryInfo != null) {
-//                SolrQueryBuilder.changeDateFrom(query, cachedRegistryInfo.last_checked);
-                SolrQueryBuilder.filterDateFrom(query, cachedRegistryInfo.last_checked);
-                query.setStart(0);
-                if (fetch()) {
-                    skip(cachedRegistryInfo.eid);
-                    return currentIndex != resultList.size();
-                }
-            }
-
-            return false;
-        }
-
         private boolean fetch() {
-            try {
-                log.trace("Getting more records");
-                QueryResponse response = server.query(query);
-                log.trace("Getting more records finished.");
-                resultList = response.getResults();
-                currentIndex = 0;
-                return resultList.size() != 0;
-            } catch (SolrServerException e) {
-                log.fatal("Error executing Solr query", e);
+
+            if (cursorMark != null) {
+                SolrHelper.setCursorMark(query, cursorMark);
+                log.trace("Cursor mark: " + cursorMark);
+
+                try {
+                    log.trace("Getting more records");
+                    QueryResponse response = server.query(query);
+                    log.trace("Getting more records finished.");
+                    String nextCursorMark = SolrHelper.getNextCursorMark(response);
+
+                    cursorMark = (cursorMark.equals(nextCursorMark))
+                            ? null
+                            : nextCursorMark;
+
+                    resultList = response.getResults();
+                    currentIndex = 0;
+                    return resultList.size() != 0;
+                } catch (SolrServerException e) {
+                    log.fatal("Error executing Solr query", e);
+                }
+
             }
 
             return false;
         }
-
-        private void skip(String eid) {
-            for (int i = 0; i != resultList.size(); ++i) {
-                SolrDocument document = resultList.get(i);
-                RegistryInfo registryInfo = toRegistryInfo(document, fixed_cid);
-                if (eid.equals(registryInfo.eid)) {
-                    currentIndex = i + 1;
-                    break;
-                }
-            }
-        }
-
     }
 
     private class FacetIterator implements CloseableIterator<DataSet> {
@@ -228,7 +205,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         }
 
         private boolean getMore() {
-            SolrQueryBuilder.setFacetOffset(query, offset);
+            SolrHelper.setFacetOffset(query, offset);
             offset += query.getFacetLimit();
             try {
                 QueryResponse response = server.query(query);
