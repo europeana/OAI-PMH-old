@@ -62,7 +62,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
             }
         } catch (SolrServerException e) {
             log.fatal("Error executing Solr query", e);
-            return null;
+            throw new RuntimeException(e);
         }
 
         return cachedRegistryInfo;
@@ -242,9 +242,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
                 return !names.isEmpty();
             } catch (SolrServerException e) {
                 log.fatal("Error executing Solr query", e);
+                throw new RuntimeException(e);
             }
-
-            return false;
         }
     }
 
