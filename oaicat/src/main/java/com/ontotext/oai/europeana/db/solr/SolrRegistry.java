@@ -5,9 +5,11 @@ import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CloseableIterator;
 import com.ontotext.oai.europeana.db.RecordsRegistry;
 import com.ontotext.oai.europeana.db.SetsProvider;
+import com.ontotext.oai.europeana.db.solr.http.RetryHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -33,6 +35,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
     public SolrRegistry(Properties properties) {
         String baseUrl = properties.getProperty("SolrRegistry.server", "http://data2.eanadev.org:9191/solr");
         server = new HttpSolrServer(baseUrl);
+        DefaultHttpClient client = (DefaultHttpClient) server.getHttpClient();
+        client.setHttpRequestRetryHandler(new RetryHandler());
         rows = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "1000"));
         maxStart = Integer.parseInt(properties.getProperty("SolrRegistry.maxStart", "100000"));
     }
@@ -171,9 +175,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
                 return resultList.size() != 0;
             } catch (SolrServerException e) {
                 log.fatal("Error executing Solr query", e);
+                throw new RuntimeException(e);
             }
-
-            return false;
         }
 
         private void skip(String eid) {
