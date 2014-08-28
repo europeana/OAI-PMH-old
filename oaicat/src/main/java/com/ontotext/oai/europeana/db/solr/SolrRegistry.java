@@ -56,7 +56,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
             }
         } catch (SolrServerException e) {
             log.fatal("Error executing Solr query", e);
-            return null;
+            throw new RuntimeException(e);
         }
 
         return cachedRegistryInfo;
@@ -138,7 +138,6 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         }
 
         private boolean fetch() {
-
             if (cursorMark != null) {
                 SolrHelper.setCursorMark(query, cursorMark);
                 log.trace("Cursor mark: " + cursorMark);
@@ -158,6 +157,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
                     return resultList.size() != 0;
                 } catch (SolrServerException e) {
                     log.fatal("Error executing Solr query", e);
+                    throw new RuntimeException(e);
                 }
 
             }
@@ -216,9 +216,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
                 return !names.isEmpty();
             } catch (SolrServerException e) {
                 log.fatal("Error executing Solr query", e);
+                throw new RuntimeException(e);
             }
-
-            return false;
         }
     }
 
