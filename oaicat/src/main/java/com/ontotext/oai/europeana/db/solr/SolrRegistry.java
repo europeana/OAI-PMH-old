@@ -29,7 +29,6 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
     private static final Log log = LogFactory.getLog(SolrRegistry.class);
     HttpSolrServer server;
     final int rows;
-    RegistryInfo cachedRegistryInfo = null;
     private final int maxStart;
 
     public SolrRegistry(Properties properties) {
@@ -43,29 +42,21 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
     @Override
     public RegistryInfo getRegistryInfo(String recordId) {
-        if (cachedRegistryInfo != null) {
-            if (recordId.equals(cachedRegistryInfo.eid)) {
-                return cachedRegistryInfo;
-            }
-            cachedRegistryInfo = null; // clear cache
-        }
-
         try {
             SolrQuery query = SolrQueryBuilder.getById(recordId);
             QueryResponse response = server.query(query);
             SolrDocumentList result = response.getResults();
             if  (result.size() != 1) {
                 log.info("Record not found: " + recordId);
-            } else {
-                SolrDocument document = result.get(0);
-                cachedRegistryInfo = toRegistryInfo(document, null);
+                throw new RuntimeException("Registry entry not found: " + recordId);
             }
+
+            SolrDocument document = result.get(0);
+            return toRegistryInfo(document, null);
         } catch (SolrServerException e) {
             log.fatal("Error executing Solr query", e);
             throw new RuntimeException(e);
         }
-
-        return cachedRegistryInfo;
     }
 
     @Override
@@ -133,13 +124,16 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         @Override
         public RegistryInfo next() {
             SolrDocument document = resultList.get(currentIndex++);
-            cachedRegistryInfo = toRegistryInfo(document, fixed_cid);
-            return cachedRegistryInfo;
+            return toRegistryInfo(document, fixed_cid);
         }
 
         @Override
         public void remove() {
 
+        }
+
+        private RegistryInfo last() {
+            return  (currentIndex > 0) ? toRegistryInfo(resultList.get(currentIndex - 1), fixed_cid) : null;
         }
 
         private boolean getMore(int start) {
@@ -152,12 +146,13 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         }
 
         private boolean regenQuery() {
-            if (cachedRegistryInfo != null) {
+            RegistryInfo last = last();
+            if (last != null) {
 //                SolrQueryBuilder.changeDateFrom(query, cachedRegistryInfo.last_checked);
-                SolrQueryBuilder.filterDateFrom(query, cachedRegistryInfo.last_checked);
+                SolrQueryBuilder.filterDateFrom(query, last.last_checked);
                 query.setStart(0);
                 if (fetch()) {
-                    skip(cachedRegistryInfo.eid);
+                    skip(last.eid);
                     return currentIndex != resultList.size();
                 }
             }
