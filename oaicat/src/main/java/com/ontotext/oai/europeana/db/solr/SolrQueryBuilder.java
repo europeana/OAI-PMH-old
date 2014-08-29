@@ -15,7 +15,9 @@ import static com.ontotext.oai.europeana.db.solr.FieldNames.*;
 public class SolrQueryBuilder {
     private static DateConverter dateConverter = new DateConverter();
     public static SolrQuery listRecords(Date from, Date until, String collectionName, int rows) {
-        SolrQuery query = new SolrQuery(listRecordsQ(collectionName, from, until));
+//        SolrQuery query = new SolrQuery(listRecordsQ(from, until));
+        SolrQuery query = new SolrQuery("*:*");
+        setFilter(query, collectionName,  from,  until);
         query.setRows(rows);
 
         query.addField(TIMESTAMP);
@@ -55,47 +57,20 @@ public class SolrQueryBuilder {
         return query;
     }
 
-    public int getFacetOffset(SolrQuery query) {
-        return Integer.parseInt(query.get(FacetParams.FACET_OFFSET));
-    }
-    private static String listRecordsQ(String collectionName, Date fromDate, Date untilDate) {
-        if (collectionName == null && fromDate == null && untilDate == null) {
-            return "*:*";
+    public static void setFilter(SolrQuery query, String set, Date fromDate, Date untilDate) {
+        int size = (set == null) ? 1 : 2;
+        int index = 0;
+        String[] filters = new String[size];
+        if (set != null) {
+            filters[index++] = (COLLECTION_NAME + ":\"" + set + '"');
         }
 
-        StringBuilder q = new StringBuilder(200);
-        boolean limitByDate = fromDate != null || untilDate != null;
-        if (limitByDate) {
-            String from = dateConverter.toIsoDate(fromDate);
-            String until = dateConverter.toIsoDate(new Date(untilDate.getTime() + 1000L));
-            q.append(TIMESTAMP).append(":[");
-            q.append(from == null ? "*" : from);
-            q.append(" TO ");
-            q.append(until == null ? "*" : until);
-            q.append('}');
+        if (fromDate != null) {
+            String from = DateConverter.toIsoDate2(fromDate);
+            String until = DateConverter.toIsoDate2(untilDate);
+            filters[index] = (FieldNames.TIMESTAMP + ":[" + from + " TO " + until + "]");
         }
 
-        if (collectionName != null) {
-            if (limitByDate) {
-                q.append(" AND ");
-            }
-
-            q.append(COLLECTION_NAME).append(":\"").append(collectionName).append('"');
-        }
-
-        return q.toString();
-    }
-
-    public static void changeDateFrom(SolrQuery query, Date fromDate) {
-        String from = DateConverter.toIsoDate2(fromDate);
-        String q = query.getQuery();
-        q = q.replaceAll("\\[.*\\s+TO\\s+", "[" + from + " TO ");
-        query.setQuery(q);
-    }
-
-    public static void filterDateFrom(SolrQuery query, Date fromDate) {
-        String from = DateConverter.toIsoDate2(fromDate);
-        String filterQuery = FieldNames.TIMESTAMP + ":[" + from + " TO *]";
-        query.set(CommonParams.FQ, filterQuery);
+        query.set(CommonParams.FQ, filters);
     }
 }

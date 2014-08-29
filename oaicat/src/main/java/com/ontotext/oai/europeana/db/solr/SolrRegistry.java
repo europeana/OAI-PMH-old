@@ -62,7 +62,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
     @Override
     public CloseableIterator<RegistryInfo> listRecords(Date from, Date until, String collectionName) {
         SolrQuery query = SolrQueryBuilder.listRecords(from, until, collectionName, rows);
-        return new QueryIterator(query, collectionName);
+        return new QueryIterator(query, collectionName, until);
     }
 
     @Override
@@ -99,11 +99,13 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
     private class QueryIterator implements CloseableIterator<RegistryInfo> {
         private final SolrQuery query;
         private final String fixed_cid; // used to reduce result fields when query has collectionId filter
+        private final Date dateUntil;
         SolrDocumentList resultList;
         int currentIndex;
 
-        public QueryIterator(SolrQuery query, String cid) {
+        public QueryIterator(SolrQuery query, String cid, Date dateUntil) {
             this.query = query;
+            this.dateUntil = dateUntil;
             this.fixed_cid = StringEscapeUtils.escapeXml(cid);
             getMore(0);
         }
@@ -149,7 +151,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
             RegistryInfo last = last();
             if (last != null) {
 //                SolrQueryBuilder.changeDateFrom(query, cachedRegistryInfo.last_checked);
-                SolrQueryBuilder.filterDateFrom(query, last.last_checked);
+                SolrQueryBuilder.setFilter(query, fixed_cid, last.last_checked, dateUntil);
                 query.setStart(0);
                 if (fetch()) {
                     skip(last.eid);
