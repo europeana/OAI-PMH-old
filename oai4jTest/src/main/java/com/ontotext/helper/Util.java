@@ -1,18 +1,31 @@
 package com.ontotext.helper;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.io.*;
 import java.util.Properties;
 
 /**
  * Created by Simo on 29.7.2014 г..
  */
 public class Util {
+    private static final Log log = LogFactory.getLog(Util.class);
+
     public static Properties loadProperties() throws IOException {
-        InputStream input = Util.class.getResourceAsStream("/client.properties");
-        if (input == null) {
-            throw new FileNotFoundException("client.properties");
+
+        String configFileName = System.getProperty("config", "client.properties");
+        File configFile = new File(configFileName);
+        InputStream input;
+        if (configFile.isFile()) {
+            log.debug("Load config file: " + configFileName);
+            input = new FileInputStream(configFile);
+        } else {
+            log.warn("No config file. Load defaults.");
+            input = Util.class.getResourceAsStream("/client.properties");
+            if (input == null) {
+                throw new FileNotFoundException(configFileName);
+            }
         }
 
         Properties properties = new Properties();
