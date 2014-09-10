@@ -12,11 +12,19 @@ import java.util.Properties;
  */
 public class TraceListProcessor implements ListProcessor {
     private static final Log log = LogFactory.getLog(TraceListProcessor.class);
+
+    long page;
+    long offset;
+
     public TraceListProcessor(Properties properties) {
+        reset();
     }
 
-    long page = 0L;
-    long offset = 0L;
+    public void reset() {
+        page = 0L;
+        offset = 0L;
+    }
+
 
     public void processListBegin(RecordsList recordsList) {
         log.info("Page: " + page + " Offset: " + offset);
@@ -30,6 +38,7 @@ public class TraceListProcessor implements ListProcessor {
 
     public void processListFinish() {
         log.info("TOTAL:\nPage: " + page + " Offset: " + offset);
+        reset();
     }
 
     public void processListError(Exception e) {

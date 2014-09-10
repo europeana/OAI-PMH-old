@@ -22,6 +22,7 @@ import java.util.Properties;
  */
 public class RdfValidator implements RecordProcessor, ListProcessor {
     private static final Log log = LogFactory.getLog(RdfValidator.class);
+    private static final Log rdfLog = LogFactory.getLog("RDF");
     private static final int BUFFER_SIZE = 10 * 1024 * 1024;
     int numRecords = 0;
     int emptyRecords = 0;
@@ -34,21 +35,20 @@ public class RdfValidator implements RecordProcessor, ListProcessor {
         ++numRecords;
 
         ByteArrayOutputStream metadataStream = new ByteArrayOutputStream(BUFFER_SIZE);
-        if (metadataStream.size() == 0 ) {
-            ++emptyRecords;
-            return;
-        }
         Model m = ModelFactory.createDefaultModel();
         RDFReader rdfReader = m.getReader();
         try {
             XMLUtils.writeXmlTo(record.getMetadata(), metadataStream);
+            if (metadataStream.size() == 0 ) {
+                ++emptyRecords;
+                return;
+            }
             rdfReader.read(m, new ByteArrayInputStream(metadataStream.toByteArray()), null);
         }  catch (RiotException e) {
             ++numErrors;
-            logError(Oai4jUtil.getId(record), e);
-
+            logRDFError(Oai4jUtil.getId(record), e);
         } catch (java.io.IOException e) {
-            e.printStackTrace();
+            log.error(e);
         } finally {
             m.close();
         }
@@ -63,8 +63,8 @@ public class RdfValidator implements RecordProcessor, ListProcessor {
         trace();
     }
 
-    private void logError(String recordId, RiotException e) {
-        log.error("RDF Error: " + " RecordId: " +  recordId + " Message: " + e.getMessage());
+    private void logRDFError(String recordId, RiotException e) {
+        rdfLog.error("RecordId: " +  recordId + " Message: " + e.getMessage());
     }
 
     private void logSubTotal() {

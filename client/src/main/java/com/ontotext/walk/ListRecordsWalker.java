@@ -1,5 +1,6 @@
 package com.ontotext.walk;
 
+import com.ontotext.helper.WatchDog;
 import com.ontotext.process.ListProcessor;
 import com.ontotext.process.RecordProcessor;
 import com.ontotext.query.QueryListRecords;
@@ -21,6 +22,7 @@ public class ListRecordsWalker implements Runnable {
     private final QueryListRecords query;
     private final Navigator<RecordsList> navigator;
     Log log = LogFactory.getLog(ListRecordsWalker.class);
+    WatchDog watchDog = new WatchDog(10);
 
     public ListRecordsWalker(OaiPmhServer server,
                              RecordProcessor recordProcessor,
@@ -51,12 +53,20 @@ public class ListRecordsWalker implements Runnable {
             if (resumptionToken == null) {
                 break;
             }
-            recordsList = server.listRecords(resumptionToken);
+            recordsList = listRecords(resumptionToken);
         } while (recordsList.size() > 0);
     }
 
+    private RecordsList listRecords(ResumptionToken resumptionToken) throws OAIException {
+        RecordsList recordsList = server.listRecords(resumptionToken);
+        watchDog.reset();
+        return recordsList;
+    }
+
     private RecordsList listRecords(QueryListRecords query) throws OAIException {
-        return server.listRecords(query.prefix, query.from, query.until, query.set);
+        RecordsList recordsList = server.listRecords(query.prefix, query.from, query.until, query.set);
+        watchDog.reset();
+        return recordsList;
     }
 
     public void run() {
@@ -66,5 +76,4 @@ public class ListRecordsWalker implements Runnable {
             listProcessor.processListError(e);
         }
     }
-
 }

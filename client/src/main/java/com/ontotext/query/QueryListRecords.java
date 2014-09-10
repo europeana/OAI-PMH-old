@@ -23,11 +23,20 @@ public final class QueryListRecords {
     }
 
     public static QueryListRecords load(Properties properties) {
-        return new QueryListRecords(
-                properties.getProperty("QueryListRecords.from"),
-                properties.getProperty("QueryListRecords.until"),
-                properties.getProperty("QueryListRecords.set"),
-                properties.getProperty("QueryListRecords.prefix", "edm")
-                );
+        String from = properties.getProperty("QueryListRecords.from");
+        String until = properties.getProperty("QueryListRecords.until");
+        String set = properties.getProperty("QueryListRecords.set");
+
+        if (from == null && until == null && set == null) {
+            return null;
+        }
+
+        String prefix = properties.getProperty("QueryListRecords.prefix", "edm");
+        return new QueryListRecords(from, until, set, prefix);
     }
+
+    public String toString() {
+        return "Set: " + set + ", from: " + from + ", until: " + until;
+    }
+
 }
