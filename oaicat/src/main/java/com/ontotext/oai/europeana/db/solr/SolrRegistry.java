@@ -5,7 +5,6 @@ import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CloseableIterator;
 import com.ontotext.oai.europeana.db.RecordsRegistry;
 import com.ontotext.oai.europeana.db.SetsProvider;
-import com.ontotext.oai.europeana.db.solr.http.RetryHandler;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,7 +34,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         String baseUrl = properties.getProperty("SolrRegistry.server", "http://data2.eanadev.org:9191/solr");
         server = new HttpSolrServer(baseUrl);
         DefaultHttpClient client = (DefaultHttpClient) server.getHttpClient();
-        client.setHttpRequestRetryHandler(new RetryHandler());
+        client.setHttpRequestRetryHandler(new HttpRetryHandler());
         rows = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "1000"));
         maxStart = Integer.parseInt(properties.getProperty("SolrRegistry.maxStart", "100000"));
     }

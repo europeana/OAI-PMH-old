@@ -1,4 +1,4 @@
-package com.ontotext.oai.europeana.db.solr.http;
+package com.ontotext.oai.europeana.db.solr;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -10,13 +10,13 @@ import java.io.IOException;
 /**
  * Created by Simo on 27.8.2014 г..
  */
-public class RetryHandler extends DefaultHttpRequestRetryHandler {
-    private static final Log log = LogFactory.getLog(RetryHandler.class);
+public class HttpRetryHandler extends DefaultHttpRequestRetryHandler {
+    private static final Log log = LogFactory.getLog(HttpRetryHandler.class);
 
     private static final int RETRY_COUNT = 5;
     private static final int MIN_DELAY_MS = 1000;
     private static final int MAX_DELAY_MS = 15000;
-    public RetryHandler() {
+    public HttpRetryHandler() {
         super(RETRY_COUNT, false);
     }
 
