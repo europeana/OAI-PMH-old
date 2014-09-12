@@ -1,5 +1,6 @@
-package com.ontotext.oai.europeana;
+package com.ontotext.oai.europeana.db.http;
 
+import com.ontotext.oai.europeana.DataSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONArray;
