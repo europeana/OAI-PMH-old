@@ -39,21 +39,23 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
     @Override
     public RegistryInfo getRegistryInfo(String recordId) {
+        RegistryInfo registryInfo = null;
         try {
             SolrQuery query = SolrQueryBuilder.getById(recordId);
             QueryResponse response = server.query(query);
             SolrDocumentList result = response.getResults();
             if  (result.size() != 1) {
-                log.info("Record not found: " + recordId);
-                throw new RuntimeException("Registry entry not found: " + recordId);
+                log.warn("Record not found: " + recordId);
+            } else {
+                SolrDocument document = result.get(0);
+                registryInfo = toRegistryInfo(document, null);
             }
-
-            SolrDocument document = result.get(0);
-            return toRegistryInfo(document, null);
         } catch (SolrServerException e) {
             log.fatal("Error executing Solr query", e);
             throw new RuntimeException(e);
         }
+
+        return registryInfo;
     }
 
     @Override
