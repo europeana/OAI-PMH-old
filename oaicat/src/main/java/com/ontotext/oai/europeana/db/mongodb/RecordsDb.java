@@ -17,11 +17,9 @@ import java.util.Properties;
  */
 public class RecordsDb implements RecordsProvider {
     private EdmMongoServer edmServer;
-    private Log log = LogFactory.getLog(RecordsDb.class);
-    private boolean debug;
+    private static final Log log = LogFactory.getLog(RecordsDb.class);
 
     public RecordsDb(Properties properties) {
-        debug = Boolean.parseBoolean(properties.getProperty("RecordsDb.debug", "false"));
         String host = properties.getProperty("RecordsDb.host", "localhost");
         int port = Integer.parseInt(properties.getProperty("RecordsDb.port", "27017"));
         String databaseName = properties.getProperty("RecordsDb.db", "europeana");
@@ -31,17 +29,16 @@ public class RecordsDb implements RecordsProvider {
         try {
             Mongo mongo = new MongoClient(host, port);
             edmServer = new EdmMongoServerImpl(mongo, databaseName, username, password);
-            log.info("Using RecordsDb at " + host + ":" + port);
+            log.info("RecordsDb: [" + host + ":" + port + "] db: " + databaseName);
         } catch (Exception e) {
-            log.error(e);
+            log.error("Records DB is not constructed!", e);
+            throw new RuntimeException(e);
         }
     }
     // id: /11601/database_detail_php_ID_187548 ->
     // http://europeana.eu/api/v2/record/11601/database_detail_php_ID_187548.rdf?wskey=api2demo
     public String getRecord(String id) {
-        if (debug) {
-            log.info("getRecord(" + id + ")");
-        }
+        log.debug("getRecord(" + id + ")");
         String rdf = null;
         try {
             FullBeanImpl fullBean = (FullBeanImpl) edmServer.getFullBean(id);
@@ -52,7 +49,7 @@ public class RecordsDb implements RecordsProvider {
             }
 
         } catch (Exception e) {
-            log.error(e);
+            log.error("Record: " + id, e);
         }
 
         return rdf;
@@ -62,20 +59,4 @@ public class RecordsDb implements RecordsProvider {
         edmServer.close();
     }
 
-    public static void main(String[] args) {
-//        String recordId = "http://data.europeana.eu/item/11601/HERBARW_NHMV_AUSTRIA_187548";
-        String recordId = "/item/91647/2A35E4A2EA4495D0A5F3DEC6B9D92E13E17C7D81";
-//        String recordId = "/11601/database_detail_php_ID_187548";
-        Properties properties = new Properties();
-        RecordsDb db = new RecordsDb(properties);
-        try {
-            String rdf = db.getRecord(recordId);
-            System.out.println(rdf);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            db.close();
-        }
-    }
 }
