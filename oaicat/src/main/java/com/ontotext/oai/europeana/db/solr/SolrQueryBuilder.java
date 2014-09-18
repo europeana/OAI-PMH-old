@@ -12,12 +12,10 @@ import static com.ontotext.oai.europeana.db.solr.FieldNames.*;
  * Created by Simo on 6.6.2014 г..
  */
 public class SolrQueryBuilder {
-    private static DateConverter dateConverter = new DateConverter();
     public static SolrQuery listRecords(Date from, Date until, String collectionName, int rows) {
         SolrQuery query = new SolrQuery("*:*");
         setFilter(query, collectionName,  from,  until);
         query.setRows(rows);
-
         query.addField(TIMESTAMP);
         query.addField(EID);
         if (collectionName == null) {

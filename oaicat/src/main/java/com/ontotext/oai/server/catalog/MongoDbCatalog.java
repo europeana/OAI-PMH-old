@@ -36,13 +36,9 @@ public class MongoDbCatalog extends AbstractCatalog {
     private long id_inc = 0;
     private final int recordsPerPage;
     private final int setsPerPage;
-    private final Log log = LogFactory.getLog(MongoDbCatalog.class);
+    private static final Log log = LogFactory.getLog(MongoDbCatalog.class);
     private static final long CLEANUP_MINUTES = 1L;
     private static final long CLEANUP_MILLISECONDS = CLEANUP_MINUTES*60L*1000L;
-//    private DateTimeFormatter dateTimeFormatter = new DateConverter();
-//    private final SimpleDateFormat dateFormatter = new SimpleDateFormat();
-    DateConverter dateConverter = new DateConverter();
-//    private final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     private boolean debug;
 
@@ -141,8 +137,8 @@ public class MongoDbCatalog extends AbstractCatalog {
         Date dateFrom = null;
         Date dateUntil = null;
         try {
-            dateFrom = dateConverter.fromIsoDateTime(from);
-            dateUntil = dateConverter.fromIsoDateTime(until);
+            dateFrom = DateConverter.fromIsoDateTime(from);
+            dateUntil = DateConverter.fromIsoDateTime(until);
         } catch (Exception e) {
             log.error(e);
             throw new BadArgumentException();
@@ -188,7 +184,7 @@ public class MongoDbCatalog extends AbstractCatalog {
 
     Map<String, Object> createResumptionMap(ResumptionToken token) {
         String []keys = {"expirationDate", "cursor", "resumptionToken"};
-        String[] values = {dateConverter.toIsoDate(token.getExpirationDate()), Long.toString(token.getCursor()), token.getId()};
+        String[] values = {DateConverter.toIsoDate(token.getExpirationDate()), Long.toString(token.getCursor()), token.getId()};
         SimpleMap<String, Object> map = new SimpleMap<String, Object>(keys,  values);
         return map;
     }
