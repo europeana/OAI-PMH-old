@@ -35,23 +35,22 @@ public class MongoDbCatalog extends AbstractCatalog {
     private Map<String, ResumptionToken> resumptionMap = new ConcurrentHashMap<String, ResumptionToken>();
     private long id_inc = 0;
     private final int recordsPerPage;
-    private final int setsPerPage;
     private static final Log log = LogFactory.getLog(MongoDbCatalog.class);
     private static final long CLEANUP_MINUTES = 1L;
     private static final long CLEANUP_MILLISECONDS = CLEANUP_MINUTES*60L*1000L;
 
-    private boolean debug;
-
     public MongoDbCatalog(Properties properties) {
-        if (properties == null) {
-            properties = new Properties(); // TODO: log missing file and using defaults
-        }
-
         db = new CommonDb(properties);
         recordsPerPage = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "100"));
-        setsPerPage = Integer.parseInt(properties.getProperty("MongoDbCatalog.setsPerPage", "10"));
-        debug = Boolean.parseBoolean(properties.getProperty("MongoDbCatalog.debug", "false"));
-        Timer timer = new Timer(true);
+        log.info("Records per page: " + recordsPerPage);
+        scheduleCleanupThread();
+    }
+
+    /**
+     * Create daemon thread to check every minute for expired tokens and remove them from map.
+     */
+    private void scheduleCleanupThread() {
+        Timer timer = new Timer(true); // isDaemon
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -99,9 +98,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     public Map listRecords(String from, String until, String set, String metadataPrefix)
             throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException,
             NoSetHierarchyException, OAIInternalServerError {
-        if (debug) {
-            log.info("listRecords4(" + from + ", " + until + ", " + set + ", " + metadataPrefix + ")");
-        }
+        log.debug("listRecords4(" + from + ", " + until + ", " + set + ", " + metadataPrefix + ")");
         Map listRecordsMap = super.listRecords(from, until, set, metadataPrefix);
         addResumptionMap(listRecordsMap);
         return listRecordsMap;
@@ -110,9 +107,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     @Override
     public Map listRecords(String resumptionToken)
             throws BadResumptionTokenException, OAIInternalServerError {
-        if (debug) {
-            log.info("listRecords1(" + resumptionToken + ")");
-        }
+        log.debug("listRecords1(" + resumptionToken + ")");
         Map listRecordsMap = super.listRecords(resumptionToken);
         addResumptionMap(listRecordsMap);
         return listRecordsMap;
@@ -133,9 +128,8 @@ public class MongoDbCatalog extends AbstractCatalog {
 
     @Override
     public Map listIdentifiers(String from, String until, String set, String metadataPrefix) throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException, NoSetHierarchyException, OAIInternalServerError {
-
-        Date dateFrom = null;
-        Date dateUntil = null;
+        Date dateFrom;
+        Date dateUntil;
         try {
             dateFrom = DateConverter.fromIsoDateTime(from);
             dateUntil = DateConverter.fromIsoDateTime(until);
@@ -150,7 +144,7 @@ public class MongoDbCatalog extends AbstractCatalog {
             token = oldToken;
             log.error("Duplicate tokenId: " + token.getId());
         } else {
-            resumptionMap.put(token.getId(),  token);
+            resumptionMap.put(token.getId(), token);
             log.info("Add token: " + token.getId());
         }
         return listIdentifiers(token);
@@ -200,7 +194,7 @@ public class MongoDbCatalog extends AbstractCatalog {
             RecordInfo recordInfo = new RecordInfo(xml, registryInfo);
             record = constructRecord(recordInfo, metadataPrefix);
         }
-        else if (debug) {
+        else if (log.isDebugEnabled()) {
             String fullXml = db.getRecord(localIdentifier);
             if (fullXml != null) {
                 log.warn("Record exists, but no registry entry: " + localIdentifier);
