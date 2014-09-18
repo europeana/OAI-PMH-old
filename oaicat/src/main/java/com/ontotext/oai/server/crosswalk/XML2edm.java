@@ -12,16 +12,14 @@ import java.util.Properties;
 public class XML2edm extends Crosswalk {
     private final static String schemaLocation =
             "http://www.europeana.eu/schemas/edm/ http://www.europeana.eu/schemas/edm/EDM.xsd";
-//    TODO: Construct with appropriate content and document type for RDFs
-//    private final static String contentType =
-//            "application/rdf+xml";
-//    private final static String docType = null;
+    private final static String contentType =
+            "application/rdf+xml; charset=UTF-8";
     /**
      * Called by reflection
      * @param properties   not used
      */
     public XML2edm(Properties properties) {
-        super(schemaLocation);
+        super(schemaLocation, contentType);
     }
 
     @Override
