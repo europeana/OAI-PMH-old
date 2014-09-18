@@ -20,7 +20,6 @@ import java.util.Properties;
 public class EuropeanaRecordFactory extends RecordFactory {
 //    private static Log logger = LogFactory.getLog(EuropeanaRecordFactory.class);
     private final String baseUrl;
-    private final DateConverter dateConverter = new DateConverter();
 
     public EuropeanaRecordFactory(Properties properties) {
         super(properties);
@@ -53,7 +52,7 @@ public class EuropeanaRecordFactory extends RecordFactory {
     public String getDatestamp(Object nativeItem) {
         Date timeStamp = asRecord(nativeItem).last_checked;
         if (timeStamp != null) {
-            return dateConverter.toIsoDate(timeStamp);
+            return DateConverter.toIsoDate(timeStamp);
         }
         return null;
     }
