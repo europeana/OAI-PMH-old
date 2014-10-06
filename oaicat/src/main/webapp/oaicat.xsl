@@ -77,14 +77,14 @@
             <td bgcolor="#669933">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr valign="top">
-                  <td width="50%"><a href="/oaicat/index.html"><img src="/oaicat/banner01.gif" alt="OAICat - OAI Repository Framework" width="388" height="120" border="0"/></a></td>
+                  <td width="50%"><a href="/oaicat/index.shtml"><img src="/oaicat/banner01.gif" alt="OAICat - OAI Repository Framework" width="388" height="120" border="0"/></a></td>
                   <td width="50%" align="right"><a href="http://www.oclc.org/research/"><img src="/oaicat/banner02.gif" alt="A Project of OCLC Research" width="202" height="120" border="0"/></a></td>
                 </tr>
               </table>
             </td>
           </tr>
           <tr valign="top">
-            <td><a href="/oaicat/identify.html">Identify</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/getRecord.html">GetRecord</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/listIdentifiers.html">ListIdentifiers</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text>(<a href="/oaicat/listIdentifiersResumption.html">Resumption</a>)<xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/listMetadataFormats.html">ListMetadataFormats</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/listRecords.html">ListRecords</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text>(<a href="/oaicat/listRecordsResumption.html">Resumption</a>)<xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/listSets.html">ListSets</a></td>
+            <td><a href="/oaicat/identify.shtml">Identify</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/getRecord.shtml">GetRecord</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/listIdentifiers.shtml">ListIdentifiers</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text>(<a href="/oaicat/listIdentifiersResumption.shtml">Resumption</a>)<xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/listMetadataFormats.shtml">ListMetadataFormats</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/listRecords.shtml">ListRecords</a><xsl:text disable-output-escaping="yes">&#160;</xsl:text>(<a href="/oaicat/listRecordsResumption.shtml">Resumption</a>)<xsl:text disable-output-escaping="yes">&#160;</xsl:text><span class="divider">|</span><xsl:text disable-output-escaping="yes">&#160;</xsl:text><a href="/oaicat/listSets.shtml">ListSets</a></td>
           </tr>
           <tr valign="top">
             <td bgcolor="#cccccc">
@@ -314,7 +314,7 @@
       <td><strong><xsl:value-of select="name()"/></strong></td>
       <td>
         <!--
-        <a href="/oaicat/index.html"><img src="/oaicat/oaicat_icon.gif" alt="Testing"/></a>
+        <a href="/oaicat/index.shtml"><img src="/oaicat/oaicat_icon.gif" alt="Testing"/></a>
         -->
         <a>
           <xsl:attribute name="href">

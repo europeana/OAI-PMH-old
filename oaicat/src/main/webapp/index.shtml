@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html>
+<head>
+    <title>OAICat - An OAI-PMH v2 Repository Framework</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <link rel="shortcut icon" href="favicon.png" />
+    <link href="oaicat.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div id="container">
+        <!--#include virtual="header.shtml" -->
+        <div id="main">
+            <h2>Europeana OAI-PMH Server</h2>
+
+            <p>
+                Developed by
+                <a href="http://www.ontotext.com">Ontotext Corp</a> as part of the
+                <a href="http://pro.europeana.eu/web/europeana-creative">Europeana Creative</a> project. Uses the
+                <a href="http://www.oclc.org/research/software/oai/cat.shtm">OAICat</a> Open Source implementation of
+                <a href="http://www.openarchives.org/">OAI-PMH v2.0</a> and the Europeana MongoDB production databases. This demonstration
+                of the interfaces is based on the
+                <a href="http://purl.oclc.org/NET/OPENSRC/downloads/oaicat/jars/oaicat.war">webapp distribution</a> and can be tested
+                through the protocol request forms listed below.
+            </p>
+            <h2>Protocol Request Forms</h2>
+            <ol>
+                <li>
+                    <a href="identify.shtml">Identify</a>
+                </li>
+                <li>
+                    <a href="getRecord.shtml">GetRecord</a>
+                </li>
+                <li>
+                    <a href="listIdentifiers.shtml">ListIdentifiers</a> (
+                    <a href="listIdentifiersResumption.shtml">Resumption</a>)
+                </li>
+                <li>
+                    <a href="listMetadataFormats.shtml">ListMetadataFormats</a>
+                </li>
+                <li>
+                    <a href="listRecords.shtml">ListRecords</a> (
+                    <a href="listRecordsResumption.shtml">Resumption</a>)
+                </li>
+                <li>
+                    <a href="listSets.shtml">ListSets</a> (
+                    <a href="listSetsResumption.shtml">Resumption</a>)
+                </li>
+            </ol>
+        </div>
+        <!--#include virtual="footer.shtml" -->
+    </div>
+</body>
+</html>
