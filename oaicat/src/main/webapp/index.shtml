@@ -25,25 +25,25 @@
             <h2>Protocol Request Forms</h2>
             <ol>
                 <li>
-                    <a href="identify.html">Identify</a>
+                    <a href="identify.shtml">Identify</a>
                 </li>
                 <li>
-                    <a href="getRecord.html">GetRecord</a>
+                    <a href="getRecord.shtml">GetRecord</a>
                 </li>
                 <li>
-                    <a href="listIdentifiers.html">ListIdentifiers</a> (
-                    <a href="listIdentifiersResumption.html">Resumption</a>)
+                    <a href="listIdentifiers.shtml">ListIdentifiers</a> (
+                    <a href="listIdentifiersResumption.shtml">Resumption</a>)
                 </li>
                 <li>
-                    <a href="listMetadataFormats.html">ListMetadataFormats</a>
+                    <a href="listMetadataFormats.shtml">ListMetadataFormats</a>
                 </li>
                 <li>
-                    <a href="listRecords.html">ListRecords</a> (
-                    <a href="listRecordsResumption.html">Resumption</a>)
+                    <a href="listRecords.shtml">ListRecords</a> (
+                    <a href="listRecordsResumption.shtml">Resumption</a>)
                 </li>
                 <li>
-                    <a href="listSets.html">ListSets</a> (
-                    <a href="listSetsResumption.html">Resumption</a>)
+                    <a href="listSets.shtml">ListSets</a> (
+                    <a href="listSetsResumption.shtml">Resumption</a>)
                 </li>
             </ol>
         </div>

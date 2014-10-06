@@ -12,7 +12,7 @@
         <div id="main">
             <table>
                 <tr valign="top">
-                    <td><a href="identify.html">Identify</a>&nbsp;<span class="divider">|</span>&nbsp;<a href="getRecord.html">GetRecord</a>&nbsp;<span class="divider">|</span>&nbsp;<a href="listIdentifiers.html">ListIdentifiers</a>&nbsp;(<a href="listIdentifiersResumption.html">Resumption</a>)&nbsp;<span class="divider">|</span>&nbsp;<a href="listMetadataFormats.html">ListMetadataFormats</a>&nbsp;<span class="divider">|</span>&nbsp;<a href="listRecords.html">ListRecords</a>&nbsp;(<a href="listRecordsResumption.html">Resumption</a>)&nbsp;<span class="divider">|</span>&nbsp;<a href="listSets.html">ListSets</a>&nbsp;(<a href="listSetsResumption.html">Resumption</a>)</td>
+                    <td><a href="identify.shtml">Identify</a>&nbsp;<span class="divider">|</span>&nbsp;<a href="getRecord.shtml">GetRecord</a>&nbsp;<span class="divider">|</span>&nbsp;<a href="listIdentifiers.shtml">ListIdentifiers</a>&nbsp;(<a href="listIdentifiersResumption.shtml">Resumption</a>)&nbsp;<span class="divider">|</span>&nbsp;<a href="listMetadataFormats.shtml">ListMetadataFormats</a>&nbsp;<span class="divider">|</span>&nbsp;<a href="listRecords.shtml">ListRecords</a>&nbsp;(<a href="listRecordsResumption.shtml">Resumption</a>)&nbsp;<span class="divider">|</span>&nbsp;<a href="listSets.shtml">ListSets</a>&nbsp;(<a href="listSetsResumption.shtml">Resumption</a>)</td>
                 </tr>
                 <tr valign="top">
                     <td>
