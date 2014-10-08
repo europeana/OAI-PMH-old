@@ -125,6 +125,38 @@
         <url-pattern>/servlet/OAIHandler</url-pattern>
     </servlet-mapping>
 
+
+    <!-- To enable basic authentication:
+         1. Comment-out next section.
+         In the Tomcat config file 'conf/tomcat-users.xml', Section: <tomcat-users>
+         2.1. Add role 'harvester' (or choose another name):
+         <role rolename="harvester" />
+         2.2 Add the role to a user, or add new user (coma-separated):
+         <user username="tomcat" password="password here" roles="manager-gui,harvester"/>
+
+         Note: <transport-guarantee> can be CONFIDENTIAL, INTEGRAL, or NONE
+    -->
+    <!--
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Europeana OAI-PMH Server</web-resource-name>
+            <description>OAI-PMH implementation</description>
+            <url-pattern>/</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>harvester</role-name>
+        </auth-constraint>
+        <user-data-constraint>
+            <transport-guarantee>NONE</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+    <login-config>
+        <auth-method>BASIC</auth-method>
+    </login-config>
+    -->
+
     <!-- Define the default session timeout for your application,
          in minutes.  From a servlet or JSP page, you can modify
          the timeout for a particular session dynamically by using
