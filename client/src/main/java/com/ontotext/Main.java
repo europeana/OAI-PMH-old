@@ -21,6 +21,8 @@ import javax.management.OperationsException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -107,9 +109,23 @@ public class Main implements Runnable {
         }
     }
 
+    private static void setAuthentication(Properties properties) {
+        final String username = properties.getProperty("username");
+        final String password = properties.getProperty("password");
+
+        if (username != null && password != null)
+            Authenticator.setDefault(new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password.toCharArray());
+                }
+            });
+    }
+
     public static void main(String[] args) {
         try {
             Properties properties = Util.loadProperties();
+            setAuthentication(properties);
             Main main = new Main(properties);
             log.info("Begin: " + new Date());
             main.run();

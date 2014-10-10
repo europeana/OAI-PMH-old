@@ -73,6 +73,7 @@ public class ListRecordsWalker implements Runnable {
         try {
             runThrow();
         } catch (OAIException e) {
+            log.error("Exiting ...", e);
             listProcessor.processListError(e);
         }
     }
