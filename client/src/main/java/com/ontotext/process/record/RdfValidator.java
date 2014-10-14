@@ -3,18 +3,18 @@ package com.ontotext.process.record;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFReader;
+import com.ontotext.helper.ByteArrayOutputStream2;
 import com.ontotext.helper.Oai4jUtil;
 import com.ontotext.process.ListProcessor;
 import com.ontotext.process.RecordProcessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.jena.riot.RiotException;
+import org.dom4j.Element;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.xml.XMLUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.Properties;
 
 /**
@@ -34,16 +34,27 @@ public class RdfValidator implements RecordProcessor, ListProcessor {
     public void processRecord(Record record) {
         ++numRecords;
 
-        ByteArrayOutputStream metadataStream = new ByteArrayOutputStream(BUFFER_SIZE);
+        ByteArrayOutputStream2 metadataStream = new ByteArrayOutputStream2(BUFFER_SIZE);
         Model m = ModelFactory.createDefaultModel();
         RDFReader rdfReader = m.getReader();
         try {
-            XMLUtils.writeXmlTo(record.getMetadata(), metadataStream);
-            if (metadataStream.size() == 0 ) {
+            Element metadata = record.getMetadata();
+            boolean noMetadata = false;
+            if (metadata == null) {
+                noMetadata = true;
                 ++emptyRecords;
-                return;
+            } else {
+                XMLUtils.writeXmlTo(metadata, metadataStream);
+                if (metadataStream.size() != 0) {
+                    rdfReader.read(m, metadataStream.toInputStream(), null);
+                } else {
+                    noMetadata = true;
+                    ++emptyRecords;
+                }
             }
-            rdfReader.read(m, new ByteArrayInputStream(metadataStream.toByteArray()), null);
+            if (noMetadata) {
+                log.warn("No metadata, Record: " + Oai4jUtil.getId(record));
+            }
         }  catch (RiotException e) {
             ++numErrors;
             logRDFError(Oai4jUtil.getId(record), e);

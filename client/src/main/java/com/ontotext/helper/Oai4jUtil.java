@@ -11,16 +11,13 @@ import java.io.IOException;
  * Created by Simo on 14-3-7.
  */
 public class Oai4jUtil {
-    public static String getMetadata(Record record) {
-        Element metadataElement = record.getMetadata();
 
+    public static String getMetadata(Record record) throws IOException{
         String metadata = null;
-        if (metadataElement != null) {
-            try {
+        if (record != null) {
+            Element metadataElement = record.getMetadata();
+            if (metadataElement != null) {
                 metadata = XMLUtils.xmlToString(metadataElement);
-            } catch (IOException e) {
-                // shouldn't be possible to reach here.
-                e.printStackTrace();
             }
         }
 
@@ -29,9 +26,11 @@ public class Oai4jUtil {
 
     public static String getId(Record record) {
         String id = null;
-        Header header = record.getHeader();
-        if (header != null) {
-            id = header.getIdentifier();
+        if (record != null) {
+            Header header = record.getHeader();
+            if (header != null) {
+                id = header.getIdentifier();
+            }
         }
 
         return id;
