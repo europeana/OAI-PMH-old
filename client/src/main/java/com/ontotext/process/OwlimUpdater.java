@@ -1,5 +1,6 @@
 package com.ontotext.process;
 
+import com.ontotext.helper.ByteArrayOutputStream2;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
@@ -9,15 +10,15 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.http.HTTPRepository;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
-import se.kb.oai.pmh.Header;
 import se.kb.oai.pmh.Record;
 import se.kb.oai.pmh.RecordsList;
 import se.kb.xml.XMLUtils;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+
+import static com.ontotext.helper.Oai4jUtil.getId;
 
 /**
  * Created by Simo on 14-3-12.
@@ -116,24 +117,22 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
 
         ++numRecords;
 
-        ByteArrayOutputStream metadataStream = new ByteArrayOutputStream(BUFFER_SIZE);
-        byte[] metadataBytes = null;
+        ByteArrayOutputStream2 metadataStream = new ByteArrayOutputStream2(BUFFER_SIZE);
 
         try {
             Element metadata = record.getMetadata();
             if (metadata == null) {
-                log.warn("No metadata, Record: " + getRecordId(record));
+                log.warn("No metadata, Record: " + getId(record));
             } else {
                 XMLUtils.writeXmlTo(metadata, metadataStream);
-                metadataBytes = metadataStream.toByteArray();
-                repository.add(new ByteArrayInputStream(metadataBytes), "", RDFFormat.RDFXML);
+                repository.add(metadataStream.toInputStream(), "", RDFFormat.RDFXML);
             }
         } catch (RepositoryException e) {
-            log.error("repo add failed: " + getRecordId(record), e);
-            retryAdd(metadataBytes);
+            log.error("repo add failed: " + getId(record), e);
+            retryAdd(metadataStream.toInputStream());
         } catch (RDFParseException e) {
             ++badRecords;
-            log.warn("Record: " + getRecordId(record) + " Error: " + e.getMessage());
+            log.warn("Record: " + getId(record) + " Error: " + e.getMessage());
         } catch (IOException e) {
             log.error("processRecord() IO", e);
         }
@@ -141,14 +140,13 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
 
     /**
      * When an add failed, all adds till next commit fail too. So force commit and retry once.
-     * @param metadataBytes
      */
-    private void retryAdd(byte[] metadataBytes) {
+    private void retryAdd(ByteArrayInputStream metadataStream) {
         log.info("Retry add");
         try {
             repository.commit();
             repository.begin();
-            repository.add(new ByteArrayInputStream(metadataBytes), "", RDFFormat.RDFXML);
+            repository.add(metadataStream, "", RDFFormat.RDFXML);
         } catch (Exception e) {
             log.error("Retry add", e);
         }
@@ -156,18 +154,6 @@ public class OwlimUpdater implements RecordProcessor, ListProcessor {
 
     public void processRecordEnd() {
         log.info("processRecordEnd");
-    }
-
-    private static String getRecordId(Record record) {
-        String id = null;
-        if (record != null) {
-            Header header = record.getHeader();
-            if (header != null) {
-                id = header.getIdentifier();
-            }
-        }
-
-        return id;
     }
 
     private void clearStats() {

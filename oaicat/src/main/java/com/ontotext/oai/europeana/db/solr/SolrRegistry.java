@@ -30,6 +30,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
     final int rows;
     private final int maxStart;
 
+    private RegistryInfoCache cache = new RegistryInfoCache();
+
     public SolrRegistry(Properties properties) {
         String baseUrl = properties.getProperty("SolrRegistry.server", "http://data2.eanadev.org:9191/solr");
         server = new HttpSolrServer(baseUrl);
@@ -41,7 +43,15 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
     @Override
     public RegistryInfo getRegistryInfo(String recordId) {
-        RegistryInfo registryInfo = null;
+        RegistryInfo registryInfo = cache.get(recordId);
+
+        if (registryInfo != null) {
+            log.trace("Cached");
+            return registryInfo;
+        }
+
+        log.debug("Cache miss");
+
         try {
             SolrQuery query = SolrQueryBuilder.getById(recordId);
             QueryResponse response = server.query(query);
@@ -63,7 +73,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
     @Override
     public CloseableIterator<RegistryInfo> listRecords(Date from, Date until, String collectionName) {
         SolrQuery query = SolrQueryBuilder.listRecords(from, until, collectionName, rows);
-        return new QueryIterator(query, collectionName, until);
+        return cache.add(new QueryIterator(query, collectionName, until));
     }
 
     @Override
@@ -97,12 +107,13 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         return new RegistryInfo(cid,  eid,  timestamp,  deleted);
     }
 
-    private class QueryIterator implements CloseableIterator<RegistryInfo> {
+    protected class QueryIterator implements CloseableIterator<RegistryInfo> {
         private final SolrQuery query;
         private final String fixed_cid; // used to reduce result fields when query has collectionId filter
         private final Date dateUntil;
         SolrDocumentList resultList;
         int currentIndex;
+        private RegistryInfo last;
 
         public QueryIterator(SolrQuery query, String cid, Date dateUntil) {
             this.query = query;
@@ -127,16 +138,13 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         @Override
         public RegistryInfo next() {
             SolrDocument document = resultList.get(currentIndex++);
-            return toRegistryInfo(document, fixed_cid);
+            last = toRegistryInfo(document, fixed_cid);
+            return last;
         }
 
         @Override
         public void remove() {
 
-        }
-
-        private RegistryInfo last() {
-            return  (currentIndex > 0) ? toRegistryInfo(resultList.get(currentIndex - 1), fixed_cid) : null;
         }
 
         private boolean getMore(int start) {
@@ -149,9 +157,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         }
 
         private boolean regenQuery() {
-            RegistryInfo last = last();
             if (last != null) {
-//                SolrQueryBuilder.changeDateFrom(query, cachedRegistryInfo.last_checked);
                 SolrQueryBuilder.setFilter(query, fixed_cid, last.last_checked, dateUntil);
                 query.setStart(0);
                 if (fetch()) {
