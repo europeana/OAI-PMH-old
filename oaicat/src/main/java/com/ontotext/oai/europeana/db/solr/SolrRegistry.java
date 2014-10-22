@@ -54,7 +54,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
             SolrQuery query = SolrQueryBuilder.getById(recordId);
             QueryResponse response = server.query(query);
             SolrDocumentList result = response.getResults();
-            if  (result.size() != 1) {
+            if (result.size() != 1) {
                 log.warn("Record not found: " + recordId);
             } else {
                 SolrDocument document = result.get(0);
@@ -90,7 +90,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         if (collectionName != null) {
             cid = collectionName;
         } else {
-            ArrayList<String> arr = (ArrayList<String>)document.getFieldValue(COLLECTION_NAME);
+            ArrayList<String> arr = (ArrayList<String>) document.getFieldValue(COLLECTION_NAME);
             if (!arr.isEmpty()) {
                 cid = arr.get(0);
                 cid = StringEscapeUtils.escapeXml(cid);
@@ -102,7 +102,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
         Date timestamp = (Date) document.getFieldValue(TIMESTAMP);
         final boolean deleted = false;
 
-        return new RegistryInfo(cid,  eid,  timestamp,  deleted);
+        return new RegistryInfo(cid, eid, timestamp, deleted);
     }
 
     protected class QueryIterator implements CloseableIterator<RegistryInfo> {
