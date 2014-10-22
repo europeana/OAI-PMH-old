@@ -147,6 +147,10 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
         }
 
+        public RegistryInfo last() {
+            return last;
+        }
+
         private boolean getMore(int start) {
             if (start > maxStart) {
                 return regenQuery();
@@ -158,6 +162,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 
         private boolean regenQuery() {
             if (last != null) {
+                log.debug("regenQuery");
                 SolrQueryBuilder.setFilter(query, fixed_cid, last.last_checked, dateUntil);
                 query.setStart(0);
                 if (fetch()) {
@@ -165,7 +170,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
                     return currentIndex != resultList.size();
                 }
             }
-
+            log.warn("regenQuery failed");
             return false;
         }
 
