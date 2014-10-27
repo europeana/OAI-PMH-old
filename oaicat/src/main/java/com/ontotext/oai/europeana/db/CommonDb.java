@@ -25,23 +25,23 @@ public class CommonDb {
         records = new RecordsDb(properties);
     }
 
-    public synchronized void close() {
+    public void close() {
         records.close();
         registry.close();
         sets.close();
     }
 
     // EuropeanaDb methods
-    public synchronized String getRecord(String id) {
+    public String getRecord(String id) {
         return records.getRecord(id);
     }
 
-    public synchronized Iterator<DataSet> listSets() {
+    public Iterator<DataSet> listSets() {
         return sets.listSets();
     }
 
     // EuropeanaRegistry methods
-    public synchronized RegistryInfo getRegistryInfo(String recordId) {
+    public RegistryInfo getRegistryInfo(String recordId) {
         return registry.getRegistryInfo(recordId);
     }
 
