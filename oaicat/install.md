@@ -153,3 +153,34 @@ For more details look here: [SSL Configuration HOW-TO](http://tomcat.apache.org/
 to prevent user from sending unencrypted password when logging.
 
 * Restart Tomcat.
+
+Tracking usage
+==============
+
+In order to track client usage of the OAI Server Advanced Web Statistics 6.9 (AWStats) can be installed. The plug-ins "geoip_city_maxmind" and "geoip" are required as well, make sure to include those in your installation.
+
+In order to install and configure AWStats follow the next steps:
+
+1. Download the latest version of AWStats and install it on the server (http://awstats.sourceforge.net/)
+2. Since AWStats works with the Apache log files, you should add the following lines to the Apache Tomcat context.xml files:
+
+		<Valve className="org.apache.catalina.valves.AccessLogValve"
+		pattern="combined"
+		directory="/<...>/apache-log"
+		prefix="access.log"
+		rotatable="false" />
+		
+	The directory is the full path where the log files will need to be put.
+3. Edit the AWStats configuration file with your server values, the file is named "awstats.model.conf" (if installed in its default directory, its full path will be /etc/awstats/awstats.model.conf), change LogFile for the name of the merged log file. 
+4. Once you have some log files, you have to merge them in order for AWStats to process them as one log file. Use the following command for this, taken from http://awstats.sourceforge.net/docs/awstats_tools.html:
+
+		perl logresolvemerge.pl [options] file-1 ... file-n
+	
+	It might be worthwhile setting up a cron task to automate this if you want continuous processing of statistics.	
+5. And finally to generate the statistics, use the following command:
+
+		perl awstats_buildstaticpages.pl -config=demo -month=all -year=all -dir=some_dir -buildpdf=some_dir
+		
+	And again here it might be worthwhile setting up a cron task to automate this if you want continuous processing of statistics. 
+
+When statistics are processed you can login to AWStats to browse all collected data.
