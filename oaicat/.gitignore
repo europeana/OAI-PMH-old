@@ -1,2 +1,6 @@
 # Maven build #
 target/
+/.settings/
+/.classpath
+/.DS_Store
+/.project

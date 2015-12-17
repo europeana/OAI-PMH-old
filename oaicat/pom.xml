@@ -19,7 +19,7 @@
     </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.europeanaCorelib>2.0-SNAPSHOT</version.europeanaCorelib>
+        <version.europeanaCorelib>2.1-SNAPSHOT</version.europeanaCorelib>
     </properties>
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -147,7 +147,7 @@
         <!--Europeana Core Library -->
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-solr</artifactId>
+            <artifactId>corelib-storage</artifactId>
             <version>${version.europeanaCorelib}</version>
             <exclusions>
                 <exclusion>
@@ -165,20 +165,20 @@
             </exclusions>
         </dependency>
     </dependencies>
-    <repositories>
-        <repository>
-            <id>snapshots</id>
-            <url>http://artifactory.eanadev.org/artifactory/simple/libs-snapshot-local</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>releases</id>
-            <url>http://artifactory.eanadev.org/artifactory/repo</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+<!--     <repositories> -->
+<!--         <repository> -->
+<!--             <id>snapshots</id> -->
+<!--             <url>http://artifactory.eanadev.org/artifactory/simple/libs-snapshot-local</url> -->
+<!--             <releases> -->
+<!--                 <enabled>false</enabled> -->
+<!--             </releases> -->
+<!--         </repository> -->
+<!--         <repository> -->
+<!--             <id>releases</id> -->
+<!--             <url>http://artifactory.eanadev.org/artifactory/repo</url> -->
+<!--             <snapshots> -->
+<!--                 <enabled>false</enabled> -->
+<!--             </snapshots> -->
+<!--         </repository> -->
+<!--     </repositories> -->
 </project>

@@ -1,16 +1,23 @@
 package com.ontotext.oai.europeana.db.mongodb;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import com.ontotext.oai.europeana.db.RecordsProvider;
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.solr.server.EdmMongoServer;
-import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
-import eu.europeana.corelib.solr.utils.EdmUtils;
+
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.Properties;
+import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+import com.ontotext.oai.europeana.db.RecordsProvider;
+
+import eu.europeana.corelib.edm.utils.EdmUtils;
+import eu.europeana.corelib.mongo.server.EdmMongoServer;
+import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 
 /**
  * Created by Simo on 14-2-13.
@@ -20,16 +27,31 @@ public class RecordsDb implements RecordsProvider {
     private static final Log log = LogFactory.getLog(RecordsDb.class);
 
     public RecordsDb(Properties properties) {
-        String host = properties.getProperty("RecordsDb.host", "localhost");
-        int port = Integer.parseInt(properties.getProperty("RecordsDb.port", "27017"));
+        String hostURLs = properties.getProperty("RecordsDb.URLs", "localhost");
         String databaseName = properties.getProperty("RecordsDb.db", "europeana");
         String username = properties.getProperty("RecordsDb.username", "");
         String password = properties.getProperty("RecordsDb.password", "");
 
         try {
-            Mongo mongo = new MongoClient(host, port);
+           
+            
+            List<ServerAddress> addressesProduction = new ArrayList<ServerAddress>();
+            for (String mongoStr : hostURLs.split(",")) {
+                ServerAddress address;
+                try {
+                    address = new ServerAddress(mongoStr, 27017);
+                    addressesProduction.add(address);
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            
+            Mongo mongo = new Mongo(addressesProduction);
+            
+            
             edmServer = new EdmMongoServerImpl(mongo, databaseName, username, password);
-            log.info("RecordsDb: [" + host + ":" + port + "] db: " + databaseName);
+            log.info("RecordsDb: [" + hostURLs + "] db: " + databaseName);
         } catch (Exception e) {
             log.error("Records DB is not constructed!", e);
             throw new RuntimeException(e);
