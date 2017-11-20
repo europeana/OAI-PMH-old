@@ -37,6 +37,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -103,21 +104,21 @@ public class OAIHandler extends HttpServlet {
                 log.debug("OAIHandler.init(..): No '" + PROPERTIES_SERVLET_CONTEXT_ATTRIBUTE + "' servlet context attribute. Trying to use init parameter '" + PROPERTIES_INIT_PARAMETER + "'");
                 
                 String fileName = config.getServletContext().getInitParameter(PROPERTIES_INIT_PARAMETER);
-                InputStream in;
+                InputStream in = null;
                 try {
-                    log.debug("fileName=" + fileName);
-                    in = new FileInputStream(fileName);
-                } catch (FileNotFoundException e) {
-                    log.debug("file not found. Try the classpath: " + fileName);
                     in = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+                    if (in == null) {
+                        log.error("Properties file " + fileName + " not found on the classpath!");
+                    } else {
+                        log.debug("Loading " +fileName+ "...");
+                        properties = new Properties();
+                        properties.load(in);
+                        attributes = getAttributes(properties);
+                    }
+                } finally {
+                    IOUtils.closeQuietly(in);
                 }
-                if (in != null) {
-                    log.debug("file was found: Load the properties");
-                    properties = new Properties();
-                    properties.load(in);
-                    attributes = getAttributes(properties);
-                    if (debug) System.out.println("OAIHandler.init: fileName=" + fileName);
-                }
+
             } else {
                 log.debug("Load context properties");
                 attributes = getAttributes(properties);
