@@ -1,5 +1,7 @@
 package com.ontotext.process;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import se.kb.oai.pmh.RecordsList;
 
 import java.util.concurrent.BlockingQueue;
@@ -8,6 +10,9 @@ import java.util.concurrent.BlockingQueue;
  * Created by Simo on 14-2-24.
  */
 public class QueueReader implements Runnable {
+
+    private static final Logger LOG = LogManager.getLogger(QueueReader.class);
+
     private final BlockingQueue<RecordsList> queue;
     private final ListProcessor processor;
 
@@ -28,7 +33,7 @@ public class QueueReader implements Runnable {
                 processor.processListBegin(list);
             } while (true);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 

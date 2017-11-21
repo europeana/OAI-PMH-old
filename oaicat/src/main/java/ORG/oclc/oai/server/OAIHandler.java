@@ -40,12 +40,12 @@ import javax.xml.transform.stream.StreamSource;
 import eu.europeana.corelib.web.socks.SocksProxy;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ORG.oclc.oai.server.catalog.AbstractCatalog;
 import ORG.oclc.oai.server.verb.OAIInternalServerError;
 import ORG.oclc.oai.server.verb.ServerVerb;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * OAIHandler is the primary Servlet for OAICat.
@@ -129,20 +129,8 @@ public class OAIHandler extends HttpServlet {
 
             LOG.debug("Store global properties");
             attributesMap.put("global", attributes);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            throw new ServletException(e.getMessage());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new ServletException(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            throw new ServletException(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ServletException(e.getMessage());
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (OAIInternalServerError | TransformerException | ClassNotFoundException | IllegalArgumentException | IOException e) {
+            LOG.error("Error initializig OAIHandler", e);
             throw new ServletException(e.getMessage());
         }
     }
@@ -161,8 +149,7 @@ public class OAIHandler extends HttpServlet {
         }
     }
     
-    public HashMap getAttributes(Properties properties)
-    throws Throwable {
+    public HashMap getAttributes(Properties properties) throws OAIInternalServerError, ClassNotFoundException, IOException, TransformerException {
         HashMap attributes = new HashMap();
         Enumeration attrNames = getServletContext().getAttributeNames();
         while (attrNames.hasMoreElements()) {
@@ -229,7 +216,7 @@ public class OAIHandler extends HttpServlet {
                         LOG.debug("file not found");
                     }
                     attributesMap.put(pathInfo, attributes);
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     LOG.debug("Couldn't load file", e);
                     // do nothing
                 }
@@ -331,22 +318,13 @@ public class OAIHandler extends HttpServlet {
             } catch (FileNotFoundException e) {
                 LOG.error("SC_NOT_FOUND: {} ", e);
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-            } catch (TransformerException e) {
-                LOG.error("SC_INTERNAL_SERVER_ERROR: {} ", e);
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-            } catch (OAIInternalServerError e) {
-                LOG.error("SC_INTERNAL_SERVER_ERROR: {} ", e);
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-            } catch (SocketException e) {
-                LOG.error("SC_INTERNAL_SERVER_ERROR: {} ", e);
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-            } catch (Exception e) {
+            } catch (OAIInternalServerError | SocketException e) {
                 LOG.error("SC_INTERNAL_SERVER_ERROR: {} ", e);
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
             }
         }
         if (LOG.isDebugEnabled()) {
-            StringBuffer reqUri = new StringBuffer(request.getRequestURI().toString());
+            StringBuilder reqUri = new StringBuilder(request.getRequestURI().toString());
             String queryString = request.getQueryString();   // d=789
             if (queryString != null) {
                 reqUri.append("?").append(queryString);
@@ -392,7 +370,7 @@ public class OAIHandler extends HttpServlet {
             HashMap serverVerbs,
             HashMap extensionVerbs,
             String extensionPath)
-    throws Exception {
+    throws OAIInternalServerError {
         String result = null;
         try {
             boolean isExtensionVerb = extensionPath.equals(request.getPathInfo());

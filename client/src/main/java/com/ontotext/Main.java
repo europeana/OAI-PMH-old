@@ -9,8 +9,8 @@ import com.ontotext.walk.Navigator;
 import com.ontotext.walk.PageCountNavigator;
 import com.ontotext.walk.StandardNavigator;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.RecordsList;
 
@@ -34,14 +34,15 @@ import java.util.Properties;
  * Time: 13:51
  */
 public class Main implements Runnable {
-    private static final Log log = LogFactory.getLog(Main.class);
 
-    QueryListRecords query;
-    OaiPmhServer server;
-    ListProcessorHub listProcessor;
-    int numPages;
+    private static final Logger LOG = LogManager.getLogger(Main.class);
 
-    Main(Properties properties) {
+    private QueryListRecords query;
+    private OaiPmhServer server;
+    private ListProcessorHub listProcessor;
+    private int numPages;
+
+    public Main(Properties properties) {
         query = QueryListRecords.load(properties);
         String serverUrl = properties.getProperty("server", "http://localhost:8080/oaicat/OAIHandler");
         server = new OaiPmhServer(serverUrl);
@@ -57,16 +58,15 @@ public class Main implements Runnable {
         mbs.registerMBean(control,  objectName);
     }
 
+    @Override
     public void run() {
         Navigator<RecordsList> navigator = (numPages == 0)
                 ? new StandardNavigator()
                 : new PageCountNavigator(numPages);
         try {
             registerMBean(navigator);
-        } catch (OperationsException e) {
-            e.printStackTrace();
-        } catch (MBeanException e) {
-            e.printStackTrace();
+        } catch (OperationsException | MBeanException e) {
+            LOG.error(e);
         }
 
         if (query != null) {
@@ -74,26 +74,26 @@ public class Main implements Runnable {
         }
         File setsFile = new File("sets.txt");
         if (setsFile.exists()) {
-            log.info("Starting multiset queries.");
+            LOG.info("Starting multiset queries.");
             try {
                 List<String> sets = FileUtils.readLines(setsFile, "UTF-8");
                 for (String set : sets) {
                     try {
-                        log.info("Start set: " + set);
+                        LOG.info("Start set: {}", set);
                         QueryListRecords setQuery = new QueryListRecords(null, null, set);
                         ListRecordsWalker walker = new ListRecordsWalker(
                                 server, new EmptyRecordProcessor(), listProcessor, setQuery, navigator);
                         walker.run();
                     } catch (Exception e) {
-                        log.error("Set: " + set, e);
+                        LOG.error("Set: {}", set, e);
                         throw new RuntimeException(e);
                     } finally {
                         listProcessor.processListFinish();
                     }
-                    log.info("End set: " + set);
+                    LOG.info("End set: {}", set);
                 }
             } catch (IOException e) {
-                log.error(e);
+                LOG.error(e);
             }
         }
     }
@@ -101,7 +101,7 @@ public class Main implements Runnable {
     public void run1Query(Navigator<RecordsList> navigator) {
         ListRecordsWalker walker = new ListRecordsWalker(
                 server, new EmptyRecordProcessor(), listProcessor, query, navigator);
-        log.info("Single query: " + query);
+        LOG.info("Single query: {}", query);
         try {
             walker.run();
         } finally {
@@ -127,11 +127,11 @@ public class Main implements Runnable {
             Properties properties = Util.loadProperties();
             setAuthentication(properties);
             Main main = new Main(properties);
-            log.info("Begin: " + new Date());
+            LOG.info("Begin: {}", new Date());
             main.run();
-            log.info("End: " + new Date());
+            LOG.info("End: {}", new Date());
         } catch (IOException e) {
-            log.error(e);
+            LOG.error(e);
         }
     }
 }

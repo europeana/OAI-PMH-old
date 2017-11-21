@@ -6,8 +6,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV TOMCAT_MAJOR_VERSION 7
-ENV TOMCAT_MINOR_VERSION 7.0.69
+ENV TOMCAT_MAJOR_VERSION 8
+ENV TOMCAT_MINOR_VERSION 8.0.43
 ENV CATALINA_HOME /tomcat
 
 RUN wget -q https://archive.apache.org/dist/tomcat/tomcat-${TOMCAT_MAJOR_VERSION}/v${TOMCAT_MINOR_VERSION}/bin/apache-tomcat-${TOMCAT_MINOR_VERSION}.tar.gz && \

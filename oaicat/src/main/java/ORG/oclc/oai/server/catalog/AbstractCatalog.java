@@ -33,6 +33,8 @@ import ORG.oclc.oai.server.verb.NoMetadataFormatsException;
 import ORG.oclc.oai.server.verb.NoSetHierarchyException;
 import ORG.oclc.oai.server.verb.OAIInternalServerError;
 import ORG.oclc.oai.server.verb.ServerVerb;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * AbstractCatalog is the generic interface between OAICat and any arbitrary
@@ -41,7 +43,9 @@ import ORG.oclc.oai.server.verb.ServerVerb;
  * @author Jeffrey A. Young, OCLC Online Computer Library Center
  */
 public abstract class AbstractCatalog {
-    private static final boolean debug = false;
+
+    private static final Logger LOG = LogManager.getLogger(AbstractCatalog.class);
+
     /**
      * The RecordFactory that understands how to convert this database's
      * native "item" to the various metadataFormats to be supported.
@@ -113,12 +117,9 @@ public abstract class AbstractCatalog {
      * by this repository.
      * @exception BadArgumentException one or more of the arguments are bad.
      */
-    public String toFinestFrom(String from) 
-    throws BadArgumentException {
-        if (debug) {
-            System.out.println("AbstractCatalog.toFinestFrom: from=" + from);
-            System.out.println("                            target=" + VALID_GRANULARITIES[supportedGranularityOffset]);
-        }
+    public String toFinestFrom(String from) throws BadArgumentException {
+        LOG.debug("AbstractCatalog.toFinestFrom: from={}", from);
+        LOG.debug("  target={}", VALID_GRANULARITIES[supportedGranularityOffset]);
         if (from.length() > VALID_GRANULARITIES[supportedGranularityOffset].length()) {
             throw new BadArgumentException();
         }
@@ -143,8 +144,7 @@ public abstract class AbstractCatalog {
      * by this repository
      * @exception BadArgumentException one or more of the arguments are bad.
      */
-    public String toFinestUntil(String until)
-    throws BadArgumentException {
+    public String toFinestUntil(String until) throws BadArgumentException {
         if (until.length() == VALID_GRANULARITIES[supportedGranularityOffset].length()) {
             if (!isValidGranularity(until))
                 throw new BadArgumentException();
@@ -358,57 +358,39 @@ public abstract class AbstractCatalog {
      * @return on object instantiating the AbstractCatalog interface.
      * @exception Throwable some sort of problem occurred.
      */
-    public static AbstractCatalog factory(Properties properties,
-            ServletContext context)
-    throws Throwable {
+    public static AbstractCatalog factory(Properties properties, ServletContext context)
+            throws OAIInternalServerError, ClassNotFoundException {
         AbstractCatalog oaiCatalog = null;
-        String oaiCatalogClassName =
-            properties.getProperty("AbstractCatalog.oaiCatalogClassName");
-        String recordFactoryClassName =
-            properties.getProperty("AbstractCatalog.recordFactoryClassName");
+        String oaiCatalogClassName = properties.getProperty("AbstractCatalog.oaiCatalogClassName");
+        String recordFactoryClassName = properties.getProperty("AbstractCatalog.recordFactoryClassName");
         if (oaiCatalogClassName == null) {
-            throw new ClassNotFoundException(
-            "AbstractCatalog.oaiCatalogClassName is missing from properties file");
+            throw new ClassNotFoundException("AbstractCatalog.oaiCatalogClassName is missing from properties file");
         }
         if (recordFactoryClassName == null) {
-            throw new ClassNotFoundException(
-            "AbstractCatalog.recordFactoryClassName is missing from properties file");
+            throw new ClassNotFoundException("AbstractCatalog.recordFactoryClassName is missing from properties file");
         }
         Class oaiCatalogClass = Class.forName(oaiCatalogClassName);
         try {
             Constructor oaiCatalogConstructor = null;
             try {
-                oaiCatalogConstructor =
-                    oaiCatalogClass.getConstructor(new Class[] {Properties.class,
-                            ServletContext.class});
-                oaiCatalog =
-                    (AbstractCatalog)oaiCatalogConstructor.newInstance(new Object[]
-                                                                                  {properties, context});
+                oaiCatalogConstructor = oaiCatalogClass.getConstructor(new Class[] {Properties.class, ServletContext.class});
+                oaiCatalog = (AbstractCatalog)oaiCatalogConstructor.newInstance(new Object[] {properties, context});
             } catch (NoSuchMethodException e) {
-                oaiCatalogConstructor =
-                    oaiCatalogClass.getConstructor(new Class[] {Properties.class});
-                oaiCatalog =
-                    (AbstractCatalog)oaiCatalogConstructor.newInstance(new Object[]
-                                                                                  {properties});
+                oaiCatalogConstructor = oaiCatalogClass.getConstructor(new Class[] {Properties.class});
+                oaiCatalog = (AbstractCatalog)oaiCatalogConstructor.newInstance(new Object[] {properties});
             }
-            if (debug) {
-                System.out.println("AbstractCatalog.factory: recordFactoryClassName="
-                        + recordFactoryClassName);
-            }
+
+            LOG.debug("AbstractCatalog.factory: recordFactoryClassName={}", recordFactoryClassName);
             Class recordFactoryClass = Class.forName(recordFactoryClassName);
-            Constructor recordFactoryConstructor =
-                recordFactoryClass.getConstructor(new Class[] {Properties.class});
-            oaiCatalog.recordFactory =
-                (RecordFactory)recordFactoryConstructor.newInstance(new Object[] {properties});
-            if (debug) {
-                System.out.println("AbstractCatalog.factory: recordFactory=" + oaiCatalog.recordFactory);
-            }
+            Constructor recordFactoryConstructor = recordFactoryClass.getConstructor(new Class[] {Properties.class});
+            oaiCatalog.recordFactory = (RecordFactory)recordFactoryConstructor.newInstance(new Object[] {properties});
+
+            LOG.debug("AbstractCatalog.factory: recordFactory={}", oaiCatalog.recordFactory);
             String harvestable = properties.getProperty("AbstractCatalog.harvestable");
             if (harvestable != null && harvestable.equals("false")) {
                 oaiCatalog.harvestable = false;
             }
-            String secondsToLive =
-                properties.getProperty("AbstractCatalog.secondsToLive");
+            String secondsToLive = properties.getProperty("AbstractCatalog.secondsToLive");
             if (secondsToLive != null) {
                 oaiCatalog.millisecondsToLive = Integer.parseInt(secondsToLive) * 1000;
             }
@@ -421,11 +403,12 @@ public abstract class AbstractCatalog {
             }
             if (oaiCatalog.supportedGranularityOffset == -1) {
                 oaiCatalog.supportedGranularityOffset = 0;
-                System.err.println("AbstractCatalog.factory: Invalid or missing AbstractCatalog.granularity property. Setting value to default: " +
+                LOG.error("AbstractCatalog.factory: Invalid or missing AbstractCatalog.granularity property. Setting value to default: " +
                         VALID_GRANULARITIES[oaiCatalog.supportedGranularityOffset]);
             }
-        } catch (InvocationTargetException e) {
-            throw e.getTargetException();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            LOG.error("Error creating factory", e);
+            throw new OAIInternalServerError(e);
         }
         return oaiCatalog;
     }
@@ -539,9 +522,7 @@ public abstract class AbstractCatalog {
     public Map listRecords(String from, String until, String set, String metadataPrefix)
     throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException,
     NoSetHierarchyException, OAIInternalServerError {
-        if (debug) {
-            System.out.println("in AbstractCatalog.listRecords");
-        }
+        LOG.debug("in AbstractCatalog.listRecords");
         Map listIdentifiersMap = listIdentifiers(from, until, set, metadataPrefix);
         Iterator identifiers = (Iterator)listIdentifiersMap.get("identifiers");
         
