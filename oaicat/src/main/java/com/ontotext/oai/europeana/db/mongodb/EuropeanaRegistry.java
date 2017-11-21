@@ -4,17 +4,22 @@ import com.mongodb.*;
 import com.ontotext.oai.europeana.RegistryInfo;
 import com.ontotext.oai.europeana.db.CloseableIterator;
 import com.ontotext.oai.europeana.db.RecordsRegistry;
+import eu.europeana.corelib.storage.impl.MongoProviderImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 
+
 /**
+ * Connect to Europeana Registry (Mongo) database
  * Created by Simo on 14-1-10.
  */
 public class EuropeanaRegistry implements RecordsRegistry {
+
+    private static final Logger LOG = LogManager.getLogger(EuropeanaRegistry.class);
+
     private DB mongoDb;
     private MongoClient mongoClient;
     private DBCollection registry;
@@ -22,28 +27,21 @@ public class EuropeanaRegistry implements RecordsRegistry {
     private int batchSize;
 
     public EuropeanaRegistry(Properties properties) {
-        String host = properties.getProperty("EuropeanaRegistry.host", "localhost");
-        int port = Integer.parseInt(properties.getProperty("EuropeanaRegistry.port", "27017"));
-        String dbName = properties.getProperty("EuropeanaRegistry.db", "EuropeanaIdRegistry");
-        String registryName = properties.getProperty("EuropeanaRegistry.collection", "EuropeanaIdRegistry");
-        String username = properties.getProperty("EuropeanaRegistry.username");
-        String password = properties.getProperty("EuropeanaRegistry.password");
-        batchSize = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "100"));
-        try {
-            List<MongoCredential> credentials = null;
-            if (password != null && username != null) {
-                credentials = Arrays.asList(MongoCredential.createMongoCRCredential(username, dbName, password.toCharArray()));
-            }
+        String hostURLs = properties.getProperty("mongo.host");
+        String hostPorts = properties.getProperty("mongo.port");
+        String username = properties.getProperty("mongo.username");
+        String password = properties.getProperty("mongo.password");
+        String databaseName = properties.getProperty("mongo.registry.dbname");
+        String registryName = properties.getProperty("mongo.registry.collection", "EuropeanaIdRegistry");
+        batchSize = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "300"));
 
-            mongoClient = new MongoClient(new ServerAddress(host, port), credentials);
-            mongoDb = mongoClient.getDB(dbName);
-            registry = mongoDb.getCollection(registryName);
-            registry.setObjectClass(MongoRecordsRegistry.class);
-            registry.ensureIndex(mongoUtil.queryIndexDate());
-            registry.ensureIndex(mongoUtil.queryIndexSetDate());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
+        mongoClient = new MongoProviderImpl(hostURLs, hostPorts, databaseName, username, password).getMongo();
+        LOG.info("Connected to Mongo record database {} on [{}]", databaseName, hostURLs);
+        mongoDb = mongoClient.getDB(databaseName);
+        registry = mongoDb.getCollection(registryName);
+        registry.setObjectClass(MongoRecordsRegistry.class);
+        //registry.ensureIndex(mongoUtil.queryIndexDate());
+        //registry.ensureIndex(mongoUtil.queryIndexSetDate());
     }
     public RegistryInfo getRegistryInfo(String recordId) {
         DBCursor dbCursor = registry.find(mongoUtil.queryRecord(recordId));
