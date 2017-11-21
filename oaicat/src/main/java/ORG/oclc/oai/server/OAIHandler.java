@@ -115,8 +115,8 @@ public class OAIHandler extends HttpServlet {
                         LOG.info("Loading {} ...", fileName);
                         properties = new Properties();
                         properties.load(in);
-                        attributes = getAttributes(properties);
                         configureSocksProxy(properties);
+                        attributes = getAttributes(properties);
                     }
                 } finally {
                     IOUtils.closeQuietly(in);
@@ -155,7 +155,7 @@ public class OAIHandler extends HttpServlet {
         } else if (enabled == null || !enabled) {
             LOG.info("Socks proxy disabled");
         } else {
-            LOG.info("Setting up proxy at {} ", host);
+            LOG.info("Setting up socks proxy at {} ", host);
             SocksProxy socksProxy = new SocksProxy(host, props.getProperty("socks.port"), props.getProperty("socks.user"), props.getProperty("socks.password"));
             socksProxy.init();
         }
