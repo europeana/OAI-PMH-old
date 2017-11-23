@@ -10,13 +10,21 @@
         <name>KEEP SOLUTIONS</name>
         <url>www.keep.pt</url>
     </organization>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>europeanalabs.eu</id>
-            <name>europeanalabs.eu-snapshots</name>
-            <url>http://europeanalabs.eu/artifactory/libs-snapshots-local</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <!--<distributionManagement>-->
+        <!--<snapshotRepository>-->
+            <!--<id>europeanalabs.eu</id>-->
+            <!--<name>europeanalabs.eu-snapshots</name>-->
+            <!--<url>http://artifactory.eanadev.org/artifactory/libs-release-local/</url>-->
+        <!--</snapshotRepository>-->
+    <!--</distributionManagement>-->
+
+    <repositories>
+        <repository>
+            <id>libs-release-local</id>
+            <name>europeana-releases</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-release-local/</url>
+        </repository>
+    </repositories>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -82,22 +90,22 @@
         </dependency>
     </dependencies>
 
-<!--     <repositories> -->
-<!--         <repository> -->
-<!--             <id>snapshots</id> -->
-<!--             <url>http://artifactory.eanadev.org/artifactory/simple/libs-snapshot-local</url> -->
-<!--             <releases> -->
-<!--                 <enabled>false</enabled> -->
-<!--             </releases> -->
-<!--         </repository> -->
-<!--         <repository> -->
-<!--             <id>releases</id> -->
-<!--             <url>http://artifactory.eanadev.org/artifactory/repo</url> -->
-<!--             <snapshots> -->
-<!--                 <enabled>false</enabled> -->
-<!--             </snapshots> -->
-<!--         </repository> -->
-<!--     </repositories> -->
+    <!--     <repositories> -->
+    <!--         <repository> -->
+    <!--             <id>snapshots</id> -->
+    <!--             <url>http://artifactory.eanadev.org/artifactory/simple/libs-snapshot-local</url> -->
+    <!--             <releases> -->
+    <!--                 <enabled>false</enabled> -->
+    <!--             </releases> -->
+    <!--         </repository> -->
+    <!--         <repository> -->
+    <!--             <id>releases</id> -->
+    <!--             <url>http://artifactory.eanadev.org/artifactory/repo</url> -->
+    <!--             <snapshots> -->
+    <!--                 <enabled>false</enabled> -->
+    <!--             </snapshots> -->
+    <!--         </repository> -->
+    <!--     </repositories> -->
 
     <build>
         <finalName>${project.artifactId}</finalName>
