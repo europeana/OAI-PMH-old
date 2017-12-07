@@ -10,3 +10,6 @@
 *.iws
 *.ipr
 *.iml
+
+# User defined properties
+**/oaicat.user.properties

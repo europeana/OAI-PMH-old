@@ -37,11 +37,13 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import eu.europeana.corelib.web.socks.SocksProxy;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ORG.oclc.oai.server.catalog.AbstractCatalog;
-import ORG.oclc.oai.server.verb.BadVerb;
 import ORG.oclc.oai.server.verb.OAIInternalServerError;
 import ORG.oclc.oai.server.verb.ServerVerb;
 
@@ -51,19 +53,19 @@ import ORG.oclc.oai.server.verb.ServerVerb;
  * @author Jeffrey A. Young, OCLC Online Computer Library Center
  */
 public class OAIHandler extends HttpServlet {
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    
+
+
     public static final String PROPERTIES_SERVLET_CONTEXT_ATTRIBUTE = OAIHandler.class.getName() + ".properties";
-    
+
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOG = LogManager.getLogger(OAIHandler.class);
+    /**
+     * Original OAICAT version which we cloned
+     */
     private static final String VERSION = "1.5.61";
-    private static boolean debug = false;
 
 //    private Transformer transformer = null;
 //    private boolean serviceUnavailable = false;
-//    private boolean monitor = false;
 //    private boolean forceRender = false;
     protected HashMap attributesMap = new HashMap();
 //    private HashMap serverVerbs = null;
@@ -75,7 +77,7 @@ public class OAIHandler extends HttpServlet {
 //        BasicConfigurator.configure();
 //    }
     
-    private Log log = LogFactory.getLog(OAIHandler.class);
+
     
     /**
      * Get the VERSION number
@@ -93,58 +95,61 @@ public class OAIHandler extends HttpServlet {
      */
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        
+
         try {
             HashMap attributes = null;
             ServletContext context = getServletContext();
             Properties properties = (Properties) context.getAttribute(PROPERTIES_SERVLET_CONTEXT_ATTRIBUTE);
             if (properties == null) {
                 final String PROPERTIES_INIT_PARAMETER = "properties";
-                log.debug("OAIHandler.init(..): No '" + PROPERTIES_SERVLET_CONTEXT_ATTRIBUTE + "' servlet context attribute. Trying to use init parameter '" + PROPERTIES_INIT_PARAMETER + "'");
+                LOG.debug("OAIHandler.init(..): No '{}' servlet context attribute. Trying to use init parameter '{}'",
+                        PROPERTIES_SERVLET_CONTEXT_ATTRIBUTE, PROPERTIES_INIT_PARAMETER);
                 
                 String fileName = config.getServletContext().getInitParameter(PROPERTIES_INIT_PARAMETER);
-                InputStream in;
+                InputStream in = null;
                 try {
-                    log.debug("fileName=" + fileName);
-                    in = new FileInputStream(fileName);
-                } catch (FileNotFoundException e) {
-                    log.debug("file not found. Try the classpath: " + fileName);
                     in = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+                    if (in == null) {
+                        LOG.error("Properties file {} not found on the classpath!", fileName);
+                    } else {
+                        LOG.info("Loading {} ...", fileName);
+                        properties = new Properties();
+                        properties.load(in);
+                        configureSocksProxy(properties);
+                        attributes = getAttributes(properties);
+                    }
+                } finally {
+                    IOUtils.closeQuietly(in);
                 }
-                if (in != null) {
-                    log.debug("file was found: Load the properties");
-                    properties = new Properties();
-                    properties.load(in);
-                    attributes = getAttributes(properties);
-                    if (debug) System.out.println("OAIHandler.init: fileName=" + fileName);
-                }
+
             } else {
-                log.debug("Load context properties");
+                LOG.debug("Load context properties");
                 attributes = getAttributes(properties);
             }
 
-            log.debug("Store global properties");
+            LOG.debug("Store global properties");
             attributesMap.put("global", attributes);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            throw new ServletException(e.getMessage());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new ServletException(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            throw new ServletException(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ServletException(e.getMessage());
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (OAIInternalServerError | TransformerException | ClassNotFoundException | IllegalArgumentException | IOException e) {
+            LOG.error("Error initializig OAIHandler", e);
             throw new ServletException(e.getMessage());
         }
     }
+
+    private void configureSocksProxy(Properties props) {
+        String host = props.getProperty("socks.host");
+        Boolean enabled = Boolean.valueOf(props.getProperty("socks.enabled"));
+        if (StringUtils.isEmpty(host)) {
+            LOG.info("No socks proxy host configured");
+        } else if (enabled == null || !enabled) {
+            LOG.info("Socks proxy disabled");
+        } else {
+            LOG.info("Setting up socks proxy at {} ", host);
+            SocksProxy socksProxy = new SocksProxy(host, props.getProperty("socks.port"), props.getProperty("socks.user"), props.getProperty("socks.password"));
+            socksProxy.init();
+        }
+    }
     
-    public HashMap getAttributes(Properties properties)
-    throws Throwable {
+    public HashMap getAttributes(Properties properties) throws OAIInternalServerError, ClassNotFoundException, IOException, TransformerException {
         HashMap attributes = new HashMap();
         Enumeration attrNames = getServletContext().getAttributeNames();
         while (attrNames.hasMoreElements()) {
@@ -189,36 +194,36 @@ public class OAIHandler extends HttpServlet {
     
     public HashMap getAttributes(String pathInfo) {
         HashMap attributes = null;
-        log.debug("pathInfo=" + pathInfo);
+        LOG.debug("pathInfo={}", pathInfo);
         if (pathInfo != null && pathInfo.length() > 0) {
             if (attributesMap.containsKey(pathInfo)) {
-                log.debug("attributesMap containsKey");
+                LOG.debug("attributesMap containsKey");
                 attributes = (HashMap) attributesMap.get(pathInfo);
             } else {
-                log.debug("!attributesMap containsKey");
+                LOG.debug("!attributesMap containsKey");
                 try {
                     String fileName = pathInfo.substring(1) + ".properties";
-                    log.debug("attempting load of " + fileName);
+                    LOG.debug("attempting load of {}",fileName);
                     InputStream in = Thread.currentThread()
                     .getContextClassLoader()
                     .getResourceAsStream(fileName);
                     if (in != null) {
-                        log.debug("file found");
+                        LOG.debug("file found");
                         Properties properties = new Properties();
                         properties.load(in);
                         attributes = getAttributes(properties);
                     } else {
-                        log.debug("file not found");
+                        LOG.debug("file not found");
                     }
                     attributesMap.put(pathInfo, attributes);
-                } catch (Throwable e) {
-                    log.debug("Couldn't load file", e);
+                } catch (Exception e) {
+                    LOG.debug("Couldn't load file", e);
                     // do nothing
                 }
             }
         }
         if (attributes == null) {
-            log.debug("use global attributes");
+            LOG.debug("use global attributes");
             attributes = (HashMap) attributesMap.get("global");
         }
         return attributes;
@@ -240,13 +245,8 @@ public class OAIHandler extends HttpServlet {
         if (!filterRequest(request, response)) {
             return;
         }
-        log.debug("attributes=" + attributes);
-        Properties properties =
-            (Properties) attributes.get("OAIHandler.properties");
-        boolean monitor = false;
-        if (properties.getProperty("OAIHandler.monitor") != null) {
-            monitor = true;
-        }
+        LOG.debug("attributes={}", attributes);
+        Properties properties = (Properties) attributes.get("OAIHandler.properties");
         boolean serviceUnavailable = isServiceUnavailable(properties);
         String extensionPath = properties.getProperty("OAIHandler.extensionPath", "/extension");
         
@@ -260,23 +260,18 @@ public class OAIHandler extends HttpServlet {
         if ("true".equals(properties.getProperty("OAIHandler.forceRender"))) {
             forceRender = true;
         }
-        
-//      try {
+
         request.setCharacterEncoding("UTF-8");
-//      } catch (UnsupportedEncodingException e) {
-//      e.printStackTrace();
-//      throw new IOException(e.getMessage());
-//      }
+
         Date then = null;
-        if (monitor) then = new Date();
-        if (debug) {
+        if (LOG.isDebugEnabled()) {
+            then = new Date();
             Enumeration headerNames = request.getHeaderNames();
-            System.out.println("OAIHandler.doGet: ");
+            LOG.debug("OAIHandler.doGet: ");
             while (headerNames.hasMoreElements()) {
                 String headerName = (String)headerNames.nextElement();
-                System.out.print(headerName);
-                System.out.print(": ");
-                System.out.println(request.getHeader(headerName));
+                StringBuilder sb = new StringBuilder(headerName).append(": ").append(request.getHeader(headerName));
+                LOG.debug(sb.toString());
             }
         }
         if (serviceUnavailable) {
@@ -321,31 +316,21 @@ public class OAIHandler extends HttpServlet {
                 out.write(result);
                 out.close();
             } catch (FileNotFoundException e) {
-                if (debug) {
-                    e.printStackTrace();
-                    System.out.println("SC_NOT_FOUND: " + e.getMessage());
-                }
+                LOG.error("SC_NOT_FOUND: {} ", e);
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-            } catch (TransformerException e) {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-            } catch (OAIInternalServerError e) {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-            } catch (SocketException e) {
-                System.out.println(e.getMessage());
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-            } catch (Throwable e) {
-                e.printStackTrace();
+            } catch (OAIInternalServerError | SocketException e) {
+                LOG.error("SC_INTERNAL_SERVER_ERROR: {} ", e);
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
             }
         }
-        if (monitor) {
-            StringBuffer reqUri = new StringBuffer(request.getRequestURI().toString());
+        if (LOG.isDebugEnabled()) {
+            StringBuilder reqUri = new StringBuilder(request.getRequestURI().toString());
             String queryString = request.getQueryString();   // d=789
             if (queryString != null) {
                 reqUri.append("?").append(queryString);
             }
             Runtime rt = Runtime.getRuntime();
-            System.out.println(rt.freeMemory() + "/" + rt.totalMemory() + " "
+            LOG.debug(rt.freeMemory() + "/" + rt.totalMemory() + " "
                     + ((new Date()).getTime()-then.getTime()) + "ms: "
                     + reqUri.toString());
         }
@@ -385,14 +370,13 @@ public class OAIHandler extends HttpServlet {
             HashMap serverVerbs,
             HashMap extensionVerbs,
             String extensionPath)
-    throws Throwable {
+    throws OAIInternalServerError {
+        String result = null;
         try {
             boolean isExtensionVerb = extensionPath.equals(request.getPathInfo());
             String verb = request.getParameter("verb");
-            if (debug) {
-                System.out.println("OAIHandler.g<etResult: verb=>" + verb + "<");
-            }
-            String result;
+            LOG.debug("OAIHandler.g<etResult: verb=>{}<", verb);
+
             Class verbClass = null;
             if (isExtensionVerb) {
                 verbClass = (Class)extensionVerbs.get(verb);
@@ -414,11 +398,9 @@ public class OAIHandler extends HttpServlet {
                         response,
                         serverTransformer});
             } catch (InvocationTargetException e) {
-                throw e.getTargetException();
+                LOG.error("Error constructing result", e);
             }
-            if (debug) {
-                System.out.println(result);
-            }
+            LOG.debug(result);
             return result;
         } catch (NoSuchMethodException e) {
             throw new OAIInternalServerError(e.getMessage());
@@ -437,9 +419,7 @@ public class OAIHandler extends HttpServlet {
     throws IOException {
         Writer out;
         String encodings = request.getHeader("Accept-Encoding");
-        if (debug) {
-            System.out.println("encodings=" + encodings);
-        }
+        LOG.debug("encodings={}", encodings);
         if (encodings != null && encodings.indexOf("gzip") != -1) {
 //          System.out.println("using gzip encoding");
 //          log.debug("using gzip encoding");

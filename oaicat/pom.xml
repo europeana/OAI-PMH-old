@@ -10,17 +10,103 @@
         <name>KEEP SOLUTIONS</name>
         <url>www.keep.pt</url>
     </organization>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>europeanalabs.eu</id>
-            <name>europeanalabs.eu-snapshots</name>
-            <url>http://europeanalabs.eu/artifactory/libs-snapshots-local</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <!--<distributionManagement>-->
+        <!--<snapshotRepository>-->
+            <!--<id>europeanalabs.eu</id>-->
+            <!--<name>europeanalabs.eu-snapshots</name>-->
+            <!--<url>http://artifactory.eanadev.org/artifactory/libs-release-local/</url>-->
+        <!--</snapshotRepository>-->
+    <!--</distributionManagement>-->
+
+    <repositories>
+        <repository>
+            <id>libs-release-local</id>
+            <name>europeana-releases</name>
+            <url>http://artifactory.eanadev.org/artifactory/libs-release-local/</url>
+        </repository>
+    </repositories>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.europeanaCorelib>2.1-SNAPSHOT</version.europeanaCorelib>
+        <corelib.version>2.6.5</corelib.version>
+        <log4j.version>2.9.1</log4j.version>
     </properties>
+
+    <dependencies>
+        <!-- logging -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <!-- for using 1.x style logging in log4j2, can be removed once all old logging is converted -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.3</version>
+        </dependency>
+
+        <!--Europeana Core Library -->
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-storage</artifactId>
+            <version>${corelib.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>crf-fake-tags</artifactId>
+                    <groupId>eu.europeana</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>harvester-persistence</artifactId>
+                    <groupId>eu.europeana</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>harvester-client</artifactId>
+                    <groupId>eu.europeana</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>object-storage</artifactId>
+                    <groupId>eu.europeana</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <!--     <repositories> -->
+    <!--         <repository> -->
+    <!--             <id>snapshots</id> -->
+    <!--             <url>http://artifactory.eanadev.org/artifactory/simple/libs-snapshot-local</url> -->
+    <!--             <releases> -->
+    <!--                 <enabled>false</enabled> -->
+    <!--             </releases> -->
+    <!--         </repository> -->
+    <!--         <repository> -->
+    <!--             <id>releases</id> -->
+    <!--             <url>http://artifactory.eanadev.org/artifactory/repo</url> -->
+    <!--             <snapshots> -->
+    <!--                 <enabled>false</enabled> -->
+    <!--             </snapshots> -->
+    <!--         </repository> -->
+    <!--     </repositories> -->
+
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -29,8 +115,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -100,85 +186,5 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.7</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.1.2</version>
-        </dependency>
-        <dependency>
-            <!--commons-logging wrapper -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.7</version>
-        </dependency>
 
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.4</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>2.11.3</version>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.3</version>
-        </dependency>
-        <!--Europeana Core Library -->
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-storage</artifactId>
-            <version>${version.europeanaCorelib}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-    </dependencies>
-<!--     <repositories> -->
-<!--         <repository> -->
-<!--             <id>snapshots</id> -->
-<!--             <url>http://artifactory.eanadev.org/artifactory/simple/libs-snapshot-local</url> -->
-<!--             <releases> -->
-<!--                 <enabled>false</enabled> -->
-<!--             </releases> -->
-<!--         </repository> -->
-<!--         <repository> -->
-<!--             <id>releases</id> -->
-<!--             <url>http://artifactory.eanadev.org/artifactory/repo</url> -->
-<!--             <snapshots> -->
-<!--                 <enabled>false</enabled> -->
-<!--             </snapshots> -->
-<!--         </repository> -->
-<!--     </repositories> -->
 </project>

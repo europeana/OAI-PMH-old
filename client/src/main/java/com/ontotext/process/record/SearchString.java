@@ -1,8 +1,8 @@
 package com.ontotext.process.record;
 
 import com.ontotext.process.RecordProcessor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dom4j.Element;
 import se.kb.oai.pmh.Record;
 import se.kb.xml.XMLUtils;
@@ -14,7 +14,8 @@ import java.util.Properties;
  * Created by Simo on 14-2-21.
  */
 public class SearchString implements RecordProcessor {
-    private static final Log log = LogFactory.getLog(SearchString.class);
+
+    private static final Logger LOG = LogManager.getLogger(SearchString.class);
     private String s;
     int count = 0;
 
@@ -28,17 +29,17 @@ public class SearchString implements RecordProcessor {
                 String metadata = XMLUtils.xmlToString(metadataElement);
                 ++count;
                 if (metadata.contains(s)) {
-                    log.info(record.getHeader().getIdentifier());
+                    LOG.info(record.getHeader().getIdentifier());
                 }
             }
 
 //            XMLUtils.xmlToString(getMetadata());
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
     public void processRecordEnd() {
-        log.info(count);
+        LOG.info(count);
     }
 }

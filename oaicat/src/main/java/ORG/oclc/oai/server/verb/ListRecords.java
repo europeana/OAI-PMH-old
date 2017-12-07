@@ -24,6 +24,8 @@ import javax.xml.transform.TransformerException;
 
 import ORG.oclc.oai.server.catalog.AbstractCatalog;
 import ORG.oclc.oai.server.crosswalk.Crosswalks;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Represents an OAI ListRecords Verb response. This class is used on both
@@ -32,7 +34,9 @@ import ORG.oclc.oai.server.crosswalk.Crosswalks;
  * @author Jeffrey A. Young, OCLC Online Computer Library Center
  */
 public class ListRecords extends ServerVerb {
-    private static final boolean debug = false;
+
+	private static final Logger LOG = LogManager.getLogger(ListRecords.class);
+
     private static ArrayList validParamNames1 = new ArrayList();
     static {
 	validParamNames1.add("verb");
@@ -64,54 +68,55 @@ public class ListRecords extends ServerVerb {
                                    HttpServletRequest request, HttpServletResponse response,
                                    Transformer serverTransformer)
         throws OAIInternalServerError, TransformerException {
-        if (debug) System.out.println("ListRecords.construct: entered");
-	
-        Properties properties = (Properties)context.get("OAIHandler.properties");
-        AbstractCatalog abstractCatalog = (AbstractCatalog)context.get("OAIHandler.catalog");
-	boolean xmlEncodeSetSpec = "true".equalsIgnoreCase(properties.getProperty("OAIHandler.xmlEncodeSetSpec"));
-	boolean urlEncodeSetSpec = !"false".equalsIgnoreCase(properties.getProperty("OAIHandler.urlEncodeSetSpec"));
-	String baseURL = properties.getProperty("OAIHandler.baseURL");
-	if (baseURL == null) {
-	    try {
-		baseURL = request.getRequestURL().toString();
-	    } catch (java.lang.NoSuchMethodError f) {
-		baseURL = request.getRequestURL().toString();
-	    }
-	}
+		LOG.debug("ListRecords.construct: entered");
+
+		Properties properties = (Properties)context.get("OAIHandler.properties");
+		AbstractCatalog abstractCatalog = (AbstractCatalog)context.get("OAIHandler.catalog");
+		boolean xmlEncodeSetSpec = "true".equalsIgnoreCase(properties.getProperty("OAIHandler.xmlEncodeSetSpec"));
+		boolean urlEncodeSetSpec = !"false".equalsIgnoreCase(properties.getProperty("OAIHandler.urlEncodeSetSpec"));
+		String baseURL = properties.getProperty("OAIHandler.baseURL");
+		if (baseURL == null) {
+			try {
+			baseURL = request.getRequestURL().toString();
+			} catch (java.lang.NoSuchMethodError f) {
+			baseURL = request.getRequestURL().toString();
+			}
+		}
         StringBuffer sb = new StringBuffer();
         String oldResumptionToken = request.getParameter("resumptionToken");
-	String metadataPrefix = request.getParameter("metadataPrefix");
+		String metadataPrefix = request.getParameter("metadataPrefix");
 	
-	if (metadataPrefix != null && metadataPrefix.length() == 0)
-	    metadataPrefix = null;
+		if (metadataPrefix != null && metadataPrefix.length() == 0) {
+			metadataPrefix = null;
+		}
 	
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
-	String styleSheet = properties.getProperty("OAIHandler.styleSheet");
-	if (styleSheet != null) {
-	    sb.append("<?xml-stylesheet type=\"text/xsl\" href=\"");
-	    sb.append(styleSheet);
-	    sb.append("\"?>");
-	}
+        String styleSheet = properties.getProperty("OAIHandler.styleSheet");
+        if (styleSheet != null) {
+            sb.append("<?xml-stylesheet type=\"text/xsl\" href=\"");
+            sb.append(styleSheet);
+            sb.append("\"?>");
+        }
         sb.append("<OAI-PMH xmlns=\"http://www.openarchives.org/OAI/2.0/\"");
         sb.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
-	String extraXmlns = properties.getProperty("OAIHandler.extraXmlns");
-	if (extraXmlns != null)
-	    sb.append(" ").append(extraXmlns);
-        sb.append(" xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/");
-        sb.append(" http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd\">");
-        sb.append("<responseDate>");
-	sb.append(createResponseDate(new Date()));
-	sb.append("</responseDate>");
+        String extraXmlns = properties.getProperty("OAIHandler.extraXmlns");
+        if (extraXmlns != null)
+            sb.append(" ").append(extraXmlns);
+            sb.append(" xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/");
+            sb.append(" http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd\">");
+            sb.append("<responseDate>");
+        sb.append(createResponseDate(new Date()));
+        sb.append("</responseDate>");
 //         sb.append("<requestURL>");
 //         sb.append(getRequestURL(request));
 //         sb.append("</requestURL>");
 	
-	if (!abstractCatalog.isHarvestable()) {
-	    sb.append("<request verb=\"ListRecords\">");
-	    sb.append(baseURL);
-	    sb.append("</request>");
-	    sb.append("<error code=\"badArgument\">Database is unavailable for harvesting</error>");
-	} else {
+        if (!abstractCatalog.isHarvestable()) {
+            sb.append("<request verb=\"ListRecords\">");
+            sb.append(baseURL);
+            sb.append("</request>");
+            sb.append("<error code=\"badArgument\">Database is unavailable for harvesting</error>");
+        } else {
 // 	    if (debug) {
 // 		System.gc();
 // 		System.gc();
@@ -246,9 +251,7 @@ public class ListRecords extends ServerVerb {
 	    }
 	}
         sb.append("</OAI-PMH>");
-        if (debug) {
-            System.out.println("ListRecords.constructListRecords: returning: " + sb.toString());
-        }
+        LOG.debug("ListRecords.constructListRecords: returning: {}", sb.toString());
         return render(response, "text/xml; charset=UTF-8", sb.toString(), serverTransformer);
     }
 }

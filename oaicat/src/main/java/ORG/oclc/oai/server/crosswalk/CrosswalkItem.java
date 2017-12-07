@@ -14,8 +14,16 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import ORG.oclc.oai.server.verb.OAIInternalServerError;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CrosswalkItem {
+
+	public static final int RANK_DIRECTLY_AVAILABLE = 0;
+	public static final int RANK_DERIVED = 1;
+
+	private static final Logger LOG = LogManager.getLogger(CrosswalkItem.class);
+
     private String contentType = null;
     private String docType = null;
     private String encoding = null;
@@ -27,9 +35,6 @@ public class CrosswalkItem {
     private Crosswalk crosswalk = null;
     private int rank = -1;
     
-    public static final int RANK_DIRECTLY_AVAILABLE = 0;
-    public static final int RANK_DERIVED = 1;
-
     public CrosswalkItem(String nativeRecordSchema, String metadataPrefix,
 			 String schema, String metadataNamespace,
 			 Crosswalk crosswalk, int rank) {
@@ -63,7 +68,7 @@ public class CrosswalkItem {
 	try {
 	    this.crosswalk = getCrosswalk(crosswalkClass);
 	} catch (Exception e) {
-	    e.printStackTrace();
+	    LOG.error(e);
 	    throw new OAIInternalServerError(e.getMessage());
 	}
     }
@@ -78,7 +83,7 @@ public class CrosswalkItem {
 	try {
 	    this.crosswalk = getCrosswalk(crosswalkClass);
 	} catch (Exception e) {
-	    e.printStackTrace();
+		LOG.error(e);
 	    throw new OAIInternalServerError(e.getMessage());
 	}
     }
@@ -92,7 +97,7 @@ public class CrosswalkItem {
 	try {
 	    this.crosswalk = getCrosswalk(crosswalkClass);
 	} catch (Exception e) {
-	    e.printStackTrace();
+		LOG.error(e);
 	    throw new OAIInternalServerError(e.getMessage());
 	}
     }

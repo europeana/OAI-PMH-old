@@ -27,4 +27,12 @@ public class OAIInternalServerError extends Exception {
      * @param s a message
      */
     public OAIInternalServerError(String s) { super(s); }
+
+    public OAIInternalServerError(String s, Throwable t) {
+        super(s, t);
+    }
+
+    public OAIInternalServerError(Throwable t) {
+        super(t);
+    }
 }

@@ -10,6 +10,9 @@
  */
 package ORG.oclc.oai.server.crosswalk;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.lang.reflect.Constructor;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -26,7 +29,8 @@ import java.util.StringTokenizer;
  * @author Jeffrey A. Young
  */
 public class Crosswalks {
-    private static final boolean debug = true;
+
+    private static final Logger LOG = LogManager.getLogger(Crosswalks.class);
 
     // map of metadataPrefix/CrosswalkItem
     private Map crosswalksMap = new HashMap();
@@ -57,17 +61,14 @@ public class Crosswalks {
                     }
                     CrosswalkItem crosswalkItem = new CrosswalkItem(schemaLabel, crosswalk.getSchemaURL(), crosswalk.getNamespaceURL(), crosswalk);
                     crosswalksMap.put(schemaLabel, crosswalkItem);
-                    if (debug) {
-                        System.out.println("Crosswalks.Crosswalks: " + schemaLabel + "=" + crosswalk);
-                    }
+                    LOG.debug("Crosswalks.Crosswalks: {} = {} ", schemaLabel, crosswalk);
                 } catch (Exception e) {
-                    System.err.println("Crosswalks: couldn't construct: " + formatClassName);
-                    e.printStackTrace();
+                    LOG.error("Crosswalks: couldn't construct: {}", formatClassName, e);
                 }
             }
         }
         if (crosswalksMap.size() == 0) {
-            System.err.println("Crosswalks entries are missing from properties file");
+            LOG.error("Crosswalks entries are missing from properties file");
         }
     }
 
@@ -81,7 +82,7 @@ public class Crosswalks {
         }
 
         if (crosswalksMap.size() == 0) {
-            System.err.println("Crosswalks entries are missing from properties file");
+            LOG.error("Crosswalks entries are missing from properties file");
         }
     }
 

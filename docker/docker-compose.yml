@@ -1,0 +1,38 @@
+version: "2"
+
+services:
+  oai-pmh-server:
+    build:
+      context: ./tomcat
+    image: oai-pmh-tomcat-server
+    environment:
+      #Memory monitoring
+      CATALINA_OPTS: '
+            -XX:+UseConcMarkSweepGC
+            -XX:NativeMemoryTracking=summary
+
+            -Djava.rmi.server.hostname=172.18.0.4
+            -Dcom.sun.management.jmxremote 
+            -Dcom.sun.management.jmxremote.port=1099
+            -Dcom.sun.management.jmxremote.rmi.port=1099
+            -Dcom.sun.management.jmxremote.local.only=false 
+            -Dcom.sun.management.jmxremote.authenticate=false
+            -Dcom.sun.management.jmxremote.ssl=false
+                '
+      # -Xms512M -Xmx4096M -server -XX:+UseParallelGC
+      #Debugging port
+      JPDA_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000
+
+    #   Mount point for application in tomcat (the target folder on your workspace is directly mounted to the tomcat container)
+    volumes:
+      - ../oaicat/target/oaicat:/tomcat/webapps/oaicat
+    # Map ports from tomcat container to the local machine
+    ports:
+    #local:container
+      #Tomcat port
+      - "8082:8080"
+      #Debug port
+      - "8002:8000"
+      #JMX Port
+      - "1199:1099"
+    restart: always
