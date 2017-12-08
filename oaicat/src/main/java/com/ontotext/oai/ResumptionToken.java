@@ -12,14 +12,15 @@ import java.util.Random;
  * Created by Simo on 14-1-21.
  */
 public class ResumptionToken implements Iterator<RegistryInfo>{
-    private final CloseableIterator<RegistryInfo> dbCursor;
-    private Date expirationDate;
-    private final String id;
-    private long cursor = 0L;
-    private static final int EXPIRE_MINUTES = 10;
+
+    private static final int EXPIRE_MINUTES = 30;
     private static final TokenGen tokenGen = new TokenGen();
 
+    private final CloseableIterator<RegistryInfo> dbCursor;
+    private final String id;
 
+    private long cursor = 0L;
+    private Date expirationDate;
 
     public ResumptionToken(CloseableIterator<RegistryInfo> dbCursor, long id) {
         this.dbCursor = dbCursor;
