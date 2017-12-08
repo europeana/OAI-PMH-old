@@ -12,7 +12,7 @@ package ORG.oclc.oai.server.verb;
 
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,7 +36,6 @@ import javax.xml.transform.stream.StreamSource;
 import ORG.oclc.oai.util.OAIUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-//import javax.servlet.http.HttpUtils;
 
 /**
  * ServerVerb is the parent class for each of the server-side OAI verbs.
@@ -59,8 +58,6 @@ public abstract class ServerVerb {
      * Constructor
      */
     protected ServerVerb() { }
-
-    public static void init(Properties properties) throws Exception {}
 
     /**
      * initialize the Verb from the specified xml text
@@ -175,9 +172,7 @@ public abstract class ServerVerb {
         Enumeration params = request.getParameterNames();
         while (params.hasMoreElements()) {
             String name = (String)params.nextElement();
-            if (!validParamNames.contains(name)) {
-                return true;
-            } else if (request.getParameterValues(name).length > 1) {
+            if (!validParamNames.contains(name) || request.getParameterValues(name).length > 1) {
                 return true;
             }
         }
@@ -187,7 +182,8 @@ public abstract class ServerVerb {
                 identifier = URLEncoder.encode(identifier, "UTF-8");
                 new URI(identifier);
             }
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException | URISyntaxException e) {
+            LOG.error("Error parsing identifier", e);
             return true;
         }
         return false;
@@ -226,17 +222,15 @@ public abstract class ServerVerb {
         return xmlText;
     }
 
-    protected static String render(HttpServletResponse response, String contentType, String result,
+    protected static synchronized String render(HttpServletResponse response, String contentType, String result,
             Transformer transformer) throws TransformerException {
-        String renderedResult = null;
+        String renderedResult;
         if (transformer != null) { // render on the server
             response.setContentType("text/html; charset=UTF-8");
             StringReader stringReader = new StringReader(result);
             StreamSource streamSource = new StreamSource(stringReader);
             StringWriter stringWriter = new StringWriter();
-            synchronized (transformer) {
-                transformer.transform(streamSource, new StreamResult(stringWriter));
-            }
+            transformer.transform(streamSource, new StreamResult(stringWriter));
             renderedResult = stringWriter.toString();
         } else { // render on the client
             response.setContentType(contentType);

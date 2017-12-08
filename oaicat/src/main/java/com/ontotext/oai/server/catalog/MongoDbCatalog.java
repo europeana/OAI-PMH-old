@@ -16,11 +16,9 @@ import com.ontotext.oai.util.DateConverter;
 import com.ontotext.oai.util.NullifyObjectCallback;
 import com.ontotext.oai.util.SimpleMap;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,18 +29,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * Time: 11:24
  */
 public class MongoDbCatalog extends AbstractCatalog {
-    private CommonDb db;
-    private Map<String, ResumptionToken> resumptionMap = new ConcurrentHashMap<String, ResumptionToken>();
-    private long id_inc = 0;
+
+    private static final Logger LOG = LogManager.getLogger(MongoDbCatalog.class);
+    private static final long CLEANUP_TOKEN_MINUTES = 1L;
+    private static final long CLEANUP_TOKEN_MILLISECONDS = CLEANUP_TOKEN_MINUTES*60L*1000L;
+
     private final int recordsPerPage;
-    private static final Log log = LogFactory.getLog(MongoDbCatalog.class);
-    private static final long CLEANUP_MINUTES = 1L;
-    private static final long CLEANUP_MILLISECONDS = CLEANUP_MINUTES*60L*1000L;
+
+    private CommonDb db;
+    private Map<String, ResumptionToken> resumptionMap = new ConcurrentHashMap<>();
+    private long id_inc = 0;
+
 
     public MongoDbCatalog(Properties properties) {
         db = new CommonDb(properties);
         recordsPerPage = Integer.parseInt(properties.getProperty("MongoDbCatalog.recordsPerPage", "100"));
-        log.info("Records per page: " + recordsPerPage);
+        LOG.info("Records per page: {}", recordsPerPage);
         scheduleCleanupThread();
     }
 
@@ -58,7 +60,7 @@ public class MongoDbCatalog extends AbstractCatalog {
                 if (numTokens == 0) {
                     return;
                 }
-                log.debug("Cleanup thread. Num tokens: " + numTokens);
+                LOG.debug("Cleanup thread. Num tokens: {}", numTokens);
                 Date now = new Date();
                 for (Iterator<Map.Entry<String,ResumptionToken>> iterator = resumptionMap.entrySet().iterator();
                      iterator.hasNext(); ) {
@@ -66,19 +68,19 @@ public class MongoDbCatalog extends AbstractCatalog {
                     ResumptionToken token = entry.getValue();
                     Date expireDate = token.getExpirationDate();
                     if (now.after(expireDate)) {
-                        log.info("Remove token: " + token.getId());
+                        LOG.info("Remove token: {}", token.getId());
                         iterator.remove();
                         token.close();
                     }
                 }
             }
-        }, CLEANUP_MILLISECONDS, CLEANUP_MILLISECONDS);
+        }, CLEANUP_TOKEN_MILLISECONDS, CLEANUP_TOKEN_MILLISECONDS);
     }
 
     @Override
     public Map listSets() throws NoSetHierarchyException, OAIInternalServerError {
         Iterator<DataSet> europeanaCollections = db.listSets();
-        Map <String, Object> m = new HashMap<String, Object>();
+        Map <String, Object> m = new HashMap<>();
         m.put("sets", new XmlDataSetIterator(europeanaCollections));
 
         return m;
@@ -98,7 +100,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     public Map listRecords(String from, String until, String set, String metadataPrefix)
             throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException,
             NoSetHierarchyException, OAIInternalServerError {
-        log.debug("listRecords4(" + from + ", " + until + ", " + set + ", " + metadataPrefix + ")");
+        LOG.debug("listRecords4({}, {}, {}, {})", from, until, set, metadataPrefix);
         Map listRecordsMap = super.listRecords(from, until, set, metadataPrefix);
         addResumptionMap(listRecordsMap);
         return listRecordsMap;
@@ -107,7 +109,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     @Override
     public Map listRecords(String resumptionToken)
             throws BadResumptionTokenException, OAIInternalServerError {
-        log.debug("listRecords1(" + resumptionToken + ")");
+        LOG.debug("listRecords1({})", resumptionToken);
         Map listRecordsMap = super.listRecords(resumptionToken);
         addResumptionMap(listRecordsMap);
         return listRecordsMap;
@@ -127,14 +129,15 @@ public class MongoDbCatalog extends AbstractCatalog {
 
 
     @Override
-    public Map listIdentifiers(String from, String until, String set, String metadataPrefix) throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException, NoSetHierarchyException, OAIInternalServerError {
+    public Map listIdentifiers(String from, String until, String set, String metadataPrefix) throws BadArgumentException, CannotDisseminateFormatException,
+            NoItemsMatchException, NoSetHierarchyException, OAIInternalServerError {
         Date dateFrom;
         Date dateUntil;
         try {
             dateFrom = DateConverter.fromIsoDateTime(from);
             dateUntil = DateConverter.fromIsoDateTime(until);
         } catch (Exception e) {
-            log.error(e);
+            LOG.error(e);
             throw new BadArgumentException();
         }
         CloseableIterator<RegistryInfo> dbCursor = db.listRecords(dateFrom, dateUntil, set);
@@ -142,10 +145,10 @@ public class MongoDbCatalog extends AbstractCatalog {
         ResumptionToken oldToken = resumptionMap.get(token.getId());
         if (oldToken != null) {
             token = oldToken;
-            log.error("Duplicate tokenId: " + token.getId());
+            LOG.error("Duplicate tokenId: {}", token.getId());
         } else {
             resumptionMap.put(token.getId(), token);
-            log.info("Add token: " + token.getId());
+            LOG.info("Add token: {}", token.getId());
         }
         return listIdentifiers(token);
     }
@@ -154,7 +157,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     public Map listIdentifiers(String resumptionToken) throws BadResumptionTokenException, OAIInternalServerError {
         ResumptionToken token = resumptionMap.get(resumptionToken);
         if(token == null) {
-            log.error("Unknown resumption token");
+            LOG.error("Unknown resumption token");
             throw new BadResumptionTokenException();
         }
 
@@ -179,8 +182,7 @@ public class MongoDbCatalog extends AbstractCatalog {
     Map<String, Object> createResumptionMap(ResumptionToken token) {
         String []keys = {"expirationDate", "cursor", "resumptionToken"};
         String[] values = {DateConverter.toIsoDate(token.getExpirationDate()), Long.toString(token.getCursor()), token.getId()};
-        SimpleMap<String, Object> map = new SimpleMap<String, Object>(keys,  values);
-        return map;
+        return new SimpleMap<String, Object>(keys,  values);
     }
 
     @Override
@@ -194,12 +196,12 @@ public class MongoDbCatalog extends AbstractCatalog {
             RecordInfo recordInfo = new RecordInfo(xml, registryInfo);
             record = constructRecord(recordInfo, metadataPrefix);
         }
-        else if (log.isDebugEnabled()) {
+        else if (LOG.isDebugEnabled()) {
             String fullXml = db.getRecord(localIdentifier);
             if (fullXml != null) {
-                log.warn("Record exists, but no registry entry: " + localIdentifier);
+                LOG.warn("Record exists, but no registry entry: {}", localIdentifier);
             } else {
-                log.warn("No registry entry for record: " + localIdentifier);
+                LOG.warn("No registry entry for record: {}", localIdentifier);
             }
         }
 
@@ -238,33 +240,6 @@ public class MongoDbCatalog extends AbstractCatalog {
         return xml;
     }
 
-    private static void testListSets(AbstractCatalog oaiHandler) throws NoSetHierarchyException, OAIInternalServerError {
-        oaiHandler.listSets();
-    }
-
-    private static void testListIdentifiers(AbstractCatalog oaiHandler) throws CannotDisseminateFormatException, NoSetHierarchyException, OAIInternalServerError, BadArgumentException, NoItemsMatchException {
-//        Calendar calendar = Calendar.getInstance();
-//        calendar.set(2013, Calendar.SEPTEMBER, 1);
-//        String from  = calendar.getTime().toString();
-//        calendar.add(Calendar.MONTH, 1);
-//        String until  = calendar.getTime().toString();
-        String from = "2013-09-01T00:00Z";
-        String until = "2013-10-01T00:00Z";
-        oaiHandler.listIdentifiers(from, until, null, "edm");
-    }
-
-    private static Properties loadProperties() throws IOException {
-        Properties properties = new Properties();
-        FileInputStream propertiesStream = new FileInputStream("europeana.properties");
-        try {
-            properties.load(propertiesStream);
-        } finally {
-            propertiesStream.close();
-        }
-
-        return properties;
-    }
-
     private class XmlDataSetIterator implements Iterator<String> {
         private final Iterator<DataSet> iterator;
         XmlDataSetIterator(Iterator<DataSet> iterator) { this.iterator = iterator; }
@@ -278,30 +253,6 @@ public class MongoDbCatalog extends AbstractCatalog {
         }
         @Override
         public void remove() {}
-    }
-
-    private class IdentifierIterator implements Iterator<String> {
-        private final Iterator<RegistryInfo> iterator;
-
-        IdentifierIterator(Iterator<RegistryInfo> iterator) {
-            this.iterator = iterator;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return iterator.hasNext();
-        }
-
-        @Override
-        public String next() {
-            RegistryInfo ri = iterator.next();
-            return getRecordFactory().getOAIIdentifier(ri);
-        }
-
-        @Override
-        public void remove() {
-
-        }
     }
 
     private String dataSet2Xml(DataSet ds) {
