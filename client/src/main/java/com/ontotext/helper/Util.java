@@ -21,7 +21,7 @@ public class Util {
             log.debug("Load config file: " + configFileName);
             input = new FileInputStream(configFile);
         } else {
-            log.warn("No config file. Load defaults.");
+            log.info("No file specified in 'config' system property. Loading default...");
             input = Util.class.getResourceAsStream("/client.properties");
             if (input == null) {
                 throw new FileNotFoundException(configFileName);
