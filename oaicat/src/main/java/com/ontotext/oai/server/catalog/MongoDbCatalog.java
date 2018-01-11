@@ -67,9 +67,9 @@ public class MongoDbCatalog extends AbstractCatalog {
                     ResumptionToken token = entry.getValue();
                     Date expireDate = token.getExpirationDate();
                     if (now.after(expireDate)) {
-                        LOG.info("Remove token {}. Tokens remaining {}", token.getId(), numTokens);
                         iterator.remove();
                         token.close();
+                        LOG.info("Remove token {}. Tokens remaining {}", token.getId(), numTokens-1);
                     }
                 }
             }
