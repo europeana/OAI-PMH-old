@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import com.ontotext.oai.europeana.db.RecordsProvider;
 
+import com.ontotext.oai.util.StringUtil;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
 import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
@@ -38,7 +39,7 @@ public class RecordsDb implements RecordsProvider {
     // id: /11601/database_detail_php_ID_187548 ->
     // http://europeana.eu/api/v2/record/11601/database_detail_php_ID_187548.rdf?wskey=...
     public String getRecord(String id) {
-        LOG.debug("getRecord( {}", id);
+        Long start = System.currentTimeMillis();
         String rdf = null;
         try {
             FullBeanImpl fullBean = (FullBeanImpl) edmServer.getFullBean(id);
@@ -49,9 +50,10 @@ public class RecordsDb implements RecordsProvider {
             }
 
         } catch (Exception e) {
-            LOG.error("Error retrieving record {}",id , e);
+            //we sometimes get timeoutexceptions here (see EA-912), so print duration to check
+            LOG.error("Error retrieving record {}, duration = {}, message = ",id, System.currentTimeMillis() - start, e.getMessage());
+            LOG.error("  stacktrace = " + StringUtil.stacktraceAsString(e)); // so we have it in ELK
         }
-
         return rdf;
     }
 

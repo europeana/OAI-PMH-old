@@ -37,6 +37,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
+import com.ontotext.oai.util.StringUtil;
 import eu.europeana.corelib.web.socks.SocksProxy;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -398,7 +399,8 @@ public class OAIHandler extends HttpServlet {
                         response,
                         serverTransformer});
             } catch (InvocationTargetException e) {
-                LOG.error("Error constructing result", e);
+                LOG.error("Error constructing result: " +e.getMessage());
+                LOG.error("  stacktrace = " + StringUtil.stacktraceAsString(e)); // so we have it in ELK
             }
             LOG.debug(result);
             return result;

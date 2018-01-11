@@ -60,7 +60,6 @@ public class MongoDbCatalog extends AbstractCatalog {
                 if (numTokens == 0) {
                     return;
                 }
-                LOG.debug("Cleanup thread. Num tokens: {}", numTokens);
                 Date now = new Date();
                 for (Iterator<Map.Entry<String,ResumptionToken>> iterator = resumptionMap.entrySet().iterator();
                      iterator.hasNext(); ) {
@@ -68,7 +67,7 @@ public class MongoDbCatalog extends AbstractCatalog {
                     ResumptionToken token = entry.getValue();
                     Date expireDate = token.getExpirationDate();
                     if (now.after(expireDate)) {
-                        LOG.info("Remove token: {}", token.getId());
+                        LOG.info("Remove token {}. Tokens remaining {}", token.getId(), numTokens);
                         iterator.remove();
                         token.close();
                     }

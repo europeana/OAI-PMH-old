@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import com.ontotext.oai.util.StringUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -80,7 +81,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 				registryInfo = toRegistryInfo(document, null);
 			}
 		} catch (SolrServerException e) {
-			log.fatal("Error executing Solr query", e);
+			log.error("Error executing Solr query (getRegistryInfo): " +e.getMessage());
+			log.error("  stacktrace = " + StringUtil.stacktraceAsString(e)); // so we have it in ELK
 			throw new RuntimeException(e);
 		}
 
@@ -114,7 +116,7 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 				cid = arr.get(0);
 				cid = StringEscapeUtils.escapeXml(cid);
 			} else {
-				log.fatal("Collection name is missing!");
+				log.error("Collection name is missing!");
 			}
 		}
 		String eid = (String) document.getFieldValue(EID);
@@ -185,7 +187,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 					currentIndex = 0;
 					return resultList.size() != 0;
 				} catch (SolrServerException e) {
-					log.fatal("Error executing Solr query", e);
+					log.error("Error executing Solr query (fetch): " +e.getMessage());
+					log.error("  stacktrace = " + StringUtil.stacktraceAsString(e)); // so we have it in ELK
 					throw new RuntimeException(e);
 				}
 
@@ -244,7 +247,8 @@ public class SolrRegistry implements RecordsRegistry, SetsProvider {
 				names = collectionNames.getValues();
 				return !names.isEmpty();
 			} catch (SolrServerException e) {
-				log.fatal("Error executing Solr query", e);
+				log.error("Error executing Solr query (getMore): " +e.getMessage());
+				log.error("  stacktrace = " + StringUtil.stacktraceAsString(e)); // so we have it in ELK
 				throw new RuntimeException(e);
 			}
 		}
