@@ -8,6 +8,7 @@ import se.kb.oai.pmh.RecordsList;
 import java.util.Properties;
 
 /**
+ * If enabled in the client.properties this logs 1 line after every page load
  * Created by Simo on 14-1-30.
  */
 public class TraceListProcessor implements ListProcessor {

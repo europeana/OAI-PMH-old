@@ -16,10 +16,13 @@ import java.util.Properties;
  * Created by Simo on 14-2-27.
  */
 public class ListProcessorHub implements ListProcessor {
+    
+    private static final Log LOG = LogFactory.getLog(ListProcessor.class);
     private static final int MAX_PROCESSORS = 100;
+
     private final List<ListProcessor> listProcessors;
     private final List<RecordProcessor> recordProcessors;
-    static private Log log = LogFactory.getLog(ListProcessor.class);
+
 
     public ListProcessorHub(List<ListProcessor> listProcessors, List<RecordProcessor> recordProcessors) {
         this.listProcessors = listProcessors;
@@ -75,16 +78,16 @@ public class ListProcessorHub implements ListProcessor {
                 Constructor<?> constructor = processorClass.getConstructor(new Class[]{Properties.class});
                 Object processor = constructor.newInstance(properties);
                 if (processor instanceof RecordProcessor) {
-                    log.info("Add RecordProcessor: " + className);
+                    LOG.info("Add RecordProcessor: " + className);
                     recordProcessors.add((RecordProcessor) processor);
                 }
 
                 if (processor instanceof ListProcessor) {
+                    LOG.info("Add ListProcessor: " + className);
                     listProcessors.add((ListProcessor) processor);
-                    log.info("Add ListProcessor: " + className);
                 }
             } catch (Exception e) {
-                log.error(e);
+                LOG.error(e);
             }
 
         }

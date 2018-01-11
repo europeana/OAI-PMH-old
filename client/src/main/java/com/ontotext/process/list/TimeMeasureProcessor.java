@@ -2,8 +2,8 @@ package com.ontotext.process.list;
 
 import com.ontotext.process.ListProcessor;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import se.kb.oai.pmh.RecordsList;
 
 import java.util.Properties;
@@ -12,7 +12,9 @@ import java.util.Properties;
  * Created by Simo on 14-2-11.
  */
 public class TimeMeasureProcessor implements ListProcessor {
-    private static Log log = LogFactory.getLog(TimeMeasureProcessor.class);
+
+    private static final Logger LOG = LogManager.getLogger(TimeMeasureProcessor.class);
+
     long lastTime = System.currentTimeMillis();
     long totalTime = 0L;
     private long listCount = 0L;
@@ -26,7 +28,7 @@ public class TimeMeasureProcessor implements ListProcessor {
         totalTime += diff;
         ++listCount;
         lastTime = time;
-        log.info(diff);
+        LOG.info("{} ms", diff);
     }
 
     public void processListEnd(RecordsList recordsList) {
@@ -34,9 +36,9 @@ public class TimeMeasureProcessor implements ListProcessor {
     }
 
     public void processListFinish() {
-        log.info("Total pages: " + listCount);
-        log.info("Total time: " + DurationFormatUtils.formatDuration(totalTime, "HH:mm:ss.SSS"));
-        log.info("Average time: " + DurationFormatUtils.formatDuration(totalTime/listCount, "mm:ss.SSS"));
+        LOG.info("Total pages: " + listCount);
+        LOG.info("Total time: " + DurationFormatUtils.formatDuration(totalTime, "HH:mm:ss.SSS"));
+        LOG.info("Average time: " + DurationFormatUtils.formatDuration(totalTime/listCount, "mm:ss.SSS"));
     }
 
     public void processListError(Exception e) {

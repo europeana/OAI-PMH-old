@@ -9,6 +9,8 @@ import se.kb.oai.pmh.Record;
 import java.util.Properties;
 
 /**
+ * If enabled in the client.properties this prints 1 line with the date of the record every x records where x is the
+ * flushcount
  * Created by Simo on 14-3-4.
  */
 public class DateStats implements RecordProcessor {
@@ -17,7 +19,7 @@ public class DateStats implements RecordProcessor {
     long count = 0;
 
     public DateStats(Properties properties) {
-        flushCount = Integer.parseInt(properties.getProperty("DateStats.flushCount", "0"));
+        flushCount = Integer.parseInt(properties.getProperty("DateStats.flushCount", "1000"));
     }
 
     public void processRecord(Record record) {
