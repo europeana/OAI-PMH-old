@@ -38,7 +38,9 @@ public class TimeMeasureProcessor implements ListProcessor {
     public void processListFinish() {
         LOG.info("Total pages: " + listCount);
         LOG.info("Total time: " + DurationFormatUtils.formatDuration(totalTime, "HH:mm:ss.SSS"));
-        LOG.info("Average time: " + DurationFormatUtils.formatDuration(totalTime/listCount, "mm:ss.SSS"));
+        if (listCount > 0) {
+            LOG.info("Average time: " + DurationFormatUtils.formatDuration(totalTime / listCount, "mm:ss.SSS"));
+        }
     }
 
     public void processListError(Exception e) {
