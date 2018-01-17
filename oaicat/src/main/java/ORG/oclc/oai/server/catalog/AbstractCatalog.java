@@ -520,8 +520,7 @@ public abstract class AbstractCatalog {
      * @exception OAIInternalServerError signals an http status code 500 problem
      */
     public Map listRecords(String from, String until, String set, String metadataPrefix)
-    throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException,
-    NoSetHierarchyException, OAIInternalServerError {
+            throws BadArgumentException, CannotDisseminateFormatException, NoItemsMatchException, NoSetHierarchyException, OAIInternalServerError {
         LOG.debug("in AbstractCatalog.listRecords");
         Map listIdentifiersMap = listIdentifiers(from, until, set, metadataPrefix);
         Iterator identifiers = (Iterator)listIdentifiersMap.get("identifiers");
@@ -557,8 +556,7 @@ public abstract class AbstractCatalog {
      * @exception BadResumptionTokenException The resumptionToken is bad.
      * @exception OAIInternalServerError signals an http status code 500 problem
      */
-    public Map listRecords(String resumptionToken)
-    throws BadResumptionTokenException, OAIInternalServerError {
+    public Map listRecords(String resumptionToken) throws BadResumptionTokenException, OAIInternalServerError {
         Map listIdentifiersMap = listIdentifiers(resumptionToken);
         resumptionToken = (String)listIdentifiersMap.get("resumptionToken");
         Iterator identifiers = (Iterator)listIdentifiersMap.get("identifiers");

@@ -63,7 +63,7 @@ public class OAIHandler extends HttpServlet {
     /**
      * Original OAICAT version which we cloned
      */
-    private static final String VERSION = "1.5.61";
+    private static final String OAICAT_VERSION = "1.5.61";
 
 //    private Transformer transformer = null;
 //    private boolean serviceUnavailable = false;
@@ -73,17 +73,10 @@ public class OAIHandler extends HttpServlet {
 //    private HashMap extensionVerbs = null;
 //    private String extensionPath = null;
     
-//    private static Logger logger = Logger.getLogger(OAIHandler.class);
-//    static {
-//        BasicConfigurator.configure();
-//    }
-    
-
-    
     /**
      * Get the VERSION number
      */
-    public static String getVERSION() { return VERSION; }
+    public static String getVERSION() { return OAICAT_VERSION; }
     
     /**
      * init is called one time when the Servlet is loaded. This is the
@@ -164,7 +157,7 @@ public class OAIHandler extends HttpServlet {
         Class missingVerbClass = Class.forName(missingVerbClassName);
         attributes.put("OAIHandler.missingVerbClass", missingVerbClass);
         if (!"true".equals(properties.getProperty("OAIHandler.serviceUnavailable"))) {
-            attributes.put("OAIHandler.version", VERSION);
+            attributes.put("OAIHandler.version", OAICAT_VERSION);
             AbstractCatalog abstractCatalog = AbstractCatalog.factory(properties, getServletContext());
             attributes.put("OAIHandler.catalog", abstractCatalog);
         }
@@ -299,8 +292,10 @@ public class OAIHandler extends HttpServlet {
                     }
                 }
                 String result = getResult(attributes, request, response, serverTransformer, serverVerbs, extensionVerbs, extensionPath);
-//              log.debug("result=" + result);
-                
+                if (result == null) {
+                    LOG.error("result is null!!");
+                }
+
 //              if (serverTransformer) { // render on the server
 //              response.setContentType("text/html; charset=UTF-8");
 //              StringReader stringReader = new StringReader(getResult(request));
@@ -402,7 +397,9 @@ public class OAIHandler extends HttpServlet {
                 LOG.error("Error constructing result: " +e.getMessage());
                 LOG.error("  stacktrace = " + StringUtil.stacktraceAsString(e)); // so we have it in ELK
             }
-            LOG.debug(result);
+            if (result == null) {
+                LOG.warn("result = null!!");
+            }
             return result;
         } catch (NoSuchMethodException e) {
             throw new OAIInternalServerError(e.getMessage());
@@ -417,14 +414,12 @@ public class OAIHandler extends HttpServlet {
      * @param response the servlet's response information
      * @exception IOException an I/O error occurred
      */
-    public static Writer getWriter(HttpServletRequest request, HttpServletResponse response)
-    throws IOException {
+    public static Writer getWriter(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Writer out;
         String encodings = request.getHeader("Accept-Encoding");
         LOG.debug("encodings={}", encodings);
         if (encodings != null && encodings.indexOf("gzip") != -1) {
-//          System.out.println("using gzip encoding");
-//          log.debug("using gzip encoding");
+            LOG.debug("using gzip encoding");
             response.setHeader("Content-Encoding", "gzip");
             out = new OutputStreamWriter(new GZIPOutputStream(response.getOutputStream()),
             "UTF-8");
@@ -435,14 +430,16 @@ public class OAIHandler extends HttpServlet {
 //          zos.putNextEntry(new ZipEntry("dummy name"));
 //          out = new OutputStreamWriter(zos, "UTF-8");
         } else if (encodings != null && encodings.indexOf("deflate") != -1) {
-//          System.out.println("using deflate encoding");
-//          log.debug("using deflate encoding");
+            LOG.debug("using deflate encoding");
             response.setHeader("Content-Encoding", "deflate");
             out = new OutputStreamWriter(new DeflaterOutputStream(response.getOutputStream()),
             "UTF-8");
         } else {
-//          log.debug("using no encoding");
             out = response.getWriter();
+            LOG.debug("using no encoding");
+            if (out == null) {
+                LOG.warn("writer is null!!!");
+            }
         }
         return out;
     }

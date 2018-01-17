@@ -14,6 +14,7 @@ import java.util.Properties;
 
 /**
  * Connect to Europeana Registry (Mongo) database
+ * Note that this registry isn't used at the moment. Instead we use the SolrRegistry
  * Created by Simo on 14-1-10.
  */
 public class EuropeanaRegistry implements RecordsRegistry {
@@ -62,6 +63,7 @@ public class EuropeanaRegistry implements RecordsRegistry {
     }
 
     public CloseableIterator<RegistryInfo> listRecords(Date from, Date until, String setId) {
+        LOG.debug("List records: from {}, until {}, setId {}", from, until, setId);
         return new MongoRegistryIterator(registry.find(mongoUtil.queryDateRange(setId,  from, until)).batchSize(batchSize));
     }
 

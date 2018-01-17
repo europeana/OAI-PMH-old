@@ -20,6 +20,8 @@ public class RecordsDb implements RecordsProvider {
 
     private static final Logger LOG = LogManager.getLogger(RecordsDb.class);
 
+    private static final int WARN_RECORD_RETRIEVAL_DURATION = 3000; // in ms
+
     private EdmMongoServer edmServer;
 
     public RecordsDb(Properties properties) {
@@ -48,7 +50,10 @@ public class RecordsDb implements RecordsProvider {
             } else {
                 LOG.error("No record: {}");
             }
-
+            Long duration = System.currentTimeMillis() - start;
+            if (duration > WARN_RECORD_RETRIEVAL_DURATION) {
+                LOG.warn("Retrieval of record {} took {}", id, duration);
+            }
         } catch (Exception e) {
             //we sometimes get timeoutexceptions here (see EA-912), so print duration to check
             LOG.error("Error retrieving record {}, duration = {}, message = ",id, System.currentTimeMillis() - start, e.getMessage());

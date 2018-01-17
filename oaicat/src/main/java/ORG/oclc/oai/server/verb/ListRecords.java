@@ -117,137 +117,128 @@ public class ListRecords extends ServerVerb {
             sb.append("</request>");
             sb.append("<error code=\"badArgument\">Database is unavailable for harvesting</error>");
         } else {
-// 	    if (debug) {
-// 		System.gc();
-// 		System.gc();
-// 		Runtime rt = Runtime.getRuntime();
-// 		long freeMemoryK = rt.freeMemory() / 1024;
-// 		long totalMemoryK = rt.totalMemory() / 1024;
-// 		System.out.print("ListRecords.construct: " + oldResumptionToken);
-// 		System.out.print(" freeMemory=" + freeMemoryK / 1024.0 + "M");
-// 		System.out.print(" of " + totalMemoryK / 1024.0 + "M ");
-// 		System.out.println("(" + (100 * freeMemoryK) / totalMemoryK + "%)");
-// 	    }
-	
-	    Map listRecordsMap = null;
-	    
-	    ArrayList validParamNames = null;
-	    ArrayList requiredParamNames = null;
-	    if (oldResumptionToken == null) {
-		validParamNames = validParamNames1;
-		requiredParamNames = requiredParamNames1;
-		String from = request.getParameter("from");
-		String until = request.getParameter("until");
-		try {
-		    if (from != null && from.length() > 0 && from.length() < 10) {
-			throw new BadArgumentException();
-		    }
-		    if (until != null && until.length() > 0 && until.length() < 10) {
-			throw new BadArgumentException();
-		    }
-		    if (from != null && until != null && from.length() != until.length()) {
-			throw new BadArgumentException();
-		    }
-		    if (from == null || from.length() == 0) {
-			from = "0001-01-01";
-		    }
-		    if (until == null || until.length() == 0) {
-			until = "9999-12-31";
-		    }
-		    from = abstractCatalog.toFinestFrom(from);
-		    until = abstractCatalog.toFinestUntil(until);
-		    if (from.compareTo(until) > 0)
-			throw new BadArgumentException();
-		    String set = request.getParameter("set");
-                    if (set != null) {
-                        if (set.length() == 0) set = null;
-                        else if (urlEncodeSetSpec) set = set.replace(' ', '+');
-                    }
-		    Crosswalks crosswalks = abstractCatalog.getCrosswalks();
-		    if (metadataPrefix == null) {
-			throw new BadArgumentException();
-		    }
-		    if (!crosswalks.containsValue(metadataPrefix)) {
-			throw new CannotDisseminateFormatException(metadataPrefix);
-		    } else {
-			listRecordsMap = abstractCatalog.listRecords(from, until, set,
-								     metadataPrefix);
-		    }
-		} catch (NoItemsMatchException e) {
-		    sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
-		    sb.append(e.getMessage());
-		} catch (BadArgumentException e) {
-		    sb.append("<request verb=\"ListRecords\">");
-		    sb.append(baseURL);
-		    sb.append("</request>");
-		    sb.append(e.getMessage());
-// 		} catch (BadGranularityException e) {
-// 		    sb.append(getRequestElement(request));
-// 		    sb.append(e.getMessage());
-		} catch (CannotDisseminateFormatException e) {
-		    sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
-		    sb.append(e.getMessage());
-		} catch (NoSetHierarchyException e) {
-		    sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
-		    sb.append(e.getMessage());
-		}
+
+			Map listRecordsMap = null;
+
+			ArrayList validParamNames = null;
+			ArrayList requiredParamNames = null;
+			if (oldResumptionToken == null) {
+			validParamNames = validParamNames1;
+			requiredParamNames = requiredParamNames1;
+			String from = request.getParameter("from");
+			String until = request.getParameter("until");
+			try {
+				if (from != null && from.length() > 0 && from.length() < 10) {
+					throw new BadArgumentException();
+				}
+				if (until != null && until.length() > 0 && until.length() < 10) {
+					throw new BadArgumentException();
+				}
+				if (from != null && until != null && from.length() != until.length()) {
+					throw new BadArgumentException();
+				}
+				if (from == null || from.length() == 0) {
+					from = "0001-01-01";
+				}
+				if (until == null || until.length() == 0) {
+					until = "9999-12-31";
+				}
+				from = abstractCatalog.toFinestFrom(from);
+				until = abstractCatalog.toFinestUntil(until);
+				if (from.compareTo(until) > 0) {
+					throw new BadArgumentException();
+				}
+				String set = request.getParameter("set");
+				if (set != null) {
+					if (set.length() == 0) set = null;
+					else if (urlEncodeSetSpec) set = set.replace(' ', '+');
+				}
+				Crosswalks crosswalks = abstractCatalog.getCrosswalks();
+				if (metadataPrefix == null) {
+					throw new BadArgumentException();
+				}
+				if (!crosswalks.containsValue(metadataPrefix)) {
+					throw new CannotDisseminateFormatException(metadataPrefix);
+				} else {
+					listRecordsMap = abstractCatalog.listRecords(from, until, set,
+										 metadataPrefix);
+				}
+			} catch (NoItemsMatchException e) {
+				sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
+				sb.append(e.getMessage());
+			} catch (BadArgumentException e) {
+				sb.append("<request verb=\"ListRecords\">");
+				sb.append(baseURL);
+				sb.append("</request>");
+				sb.append(e.getMessage());
+	// 		} catch (BadGranularityException e) {
+	// 		    sb.append(getRequestElement(request));
+	// 		    sb.append(e.getMessage());
+			} catch (CannotDisseminateFormatException e) {
+				sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
+				sb.append(e.getMessage());
+			} catch (NoSetHierarchyException e) {
+				sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
+				sb.append(e.getMessage());
+			}
 	    } else {
-		validParamNames = validParamNames2;
-		requiredParamNames = requiredParamNames2;
-		if (hasBadArguments(request, requiredParamNames.iterator(), validParamNames)) {
-		    sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
-		    sb.append(new BadArgumentException().getMessage());
-		} else {
-		    try {
-			listRecordsMap = abstractCatalog.listRecords(oldResumptionToken);
-		    } catch (BadResumptionTokenException e) {
-			sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
-			sb.append(e.getMessage());
-		    }
-		}
+			validParamNames = validParamNames2;
+			requiredParamNames = requiredParamNames2;
+			if (hasBadArguments(request, requiredParamNames.iterator(), validParamNames)) {
+				sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
+				sb.append(new BadArgumentException().getMessage());
+			} else {
+				try {
+					listRecordsMap = abstractCatalog.listRecords(oldResumptionToken);
+				} catch (BadResumptionTokenException e) {
+					sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
+					sb.append(e.getMessage());
+				}
+			}
 	    }
+
 	    if (listRecordsMap != null) {
-		sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
-		if (hasBadArguments(request, requiredParamNames.iterator(),
-				    validParamNames)) {
-		    sb.append(new BadArgumentException().getMessage());
-		} else {
-		    sb.append("<ListRecords>\n");
-		    Iterator records = (Iterator)listRecordsMap.get("records");
-		    while (records.hasNext()) {
-			sb.append((String)records.next());
-			sb.append("\n");
-		    }
-		    Map newResumptionMap = (Map)listRecordsMap.get("resumptionMap");
-		    if (newResumptionMap != null) {
-			String newResumptionToken = (String)newResumptionMap.get("resumptionToken");
-			String expirationDate = (String)newResumptionMap.get("expirationDate");
-			String completeListSize = (String)newResumptionMap.get("completeListSize");
-			String cursor = (String)newResumptionMap.get("cursor");
-			sb.append("<resumptionToken");
-			if (expirationDate != null) {
-			    sb.append(" expirationDate=\"");
-			    sb.append(expirationDate);
-			    sb.append("\"");
+			sb.append(getRequestElement(request, validParamNames, baseURL, xmlEncodeSetSpec));
+			if (hasBadArguments(request, requiredParamNames.iterator(),
+						validParamNames)) {
+				sb.append(new BadArgumentException().getMessage());
+			} else {
+				sb.append("<ListRecords>\n");
+				Iterator records = (Iterator)listRecordsMap.get("records");
+				while (records.hasNext()) {
+					sb.append((String)records.next());
+					sb.append("\n");
+				}
+				Map newResumptionMap = (Map)listRecordsMap.get("resumptionMap");
+				if (newResumptionMap != null) {
+					String newResumptionToken = (String)newResumptionMap.get("resumptionToken");
+					String expirationDate = (String)newResumptionMap.get("expirationDate");
+					String completeListSize = (String)newResumptionMap.get("completeListSize");
+					String cursor = (String)newResumptionMap.get("cursor");
+					sb.append("<resumptionToken");
+					if (expirationDate != null) {
+						sb.append(" expirationDate=\"");
+						sb.append(expirationDate);
+						sb.append("\"");
+					}
+					if (completeListSize != null) {
+						sb.append(" completeListSize=\"");
+						sb.append(completeListSize);
+						sb.append("\"");
+					}
+					if (cursor != null) {
+						sb.append(" cursor=\"");
+						sb.append(cursor);
+						sb.append("\"");
+					}
+					sb.append(">");
+					sb.append(newResumptionToken);
+					sb.append("</resumptionToken>");
+				} else if (oldResumptionToken != null) {
+					sb.append("<resumptionToken />");
+				}
+				sb.append("</ListRecords>");
 			}
-			if (completeListSize != null) {
-			    sb.append(" completeListSize=\"");
-			    sb.append(completeListSize);
-			    sb.append("\"");
-			}
-			if (cursor != null) {
-			    sb.append(" cursor=\"");
-			    sb.append(cursor);
-			    sb.append("\"");
-			}
-			sb.append(">");
-			sb.append(newResumptionToken);
-			sb.append("</resumptionToken>");
-		    } else if (oldResumptionToken != null) {
-			sb.append("<resumptionToken />");
-		    }
-		    sb.append("</ListRecords>");
-		}
 	    }
 	}
         sb.append("</OAI-PMH>");

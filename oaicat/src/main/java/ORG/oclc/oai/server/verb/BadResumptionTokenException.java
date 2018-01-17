@@ -22,6 +22,6 @@ public class BadResumptionTokenException extends Exception {
     private static final long serialVersionUID = 1L;
 
     public BadResumptionTokenException() {
-	super("<error code=\"badResumptionToken\">The value of the resumptionToken argument is invalid or expired</error>");
+	    super("<error code=\"badResumptionToken\">The value of the resumptionToken argument is invalid or expired</error>");
     }
 }
