@@ -18,7 +18,7 @@ import se.kb.xml.XMLUtils;
 /**
  * Created by Simo on 14-3-6.
  */
-public class RdfValidator implements RecordProcessor, ListProcessor {
+public class RdfValidator implements RecordProcessor, ListProcessor<RecordsList> {
 
     private static final Logger LOG = LogManager.getLogger(RdfValidator.class);
 

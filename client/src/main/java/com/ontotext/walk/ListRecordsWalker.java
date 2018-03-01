@@ -64,7 +64,7 @@ public class ListRecordsWalker implements Runnable {
     }
 
     private RecordsList listRecords(QueryListRecords query) throws OAIException {
-        RecordsList recordsList = server.listRecords(query.prefix, query.from, query.until, query.set);
+        RecordsList recordsList = server.listRecords(query.getPrefix(), query.getFrom(), query.getUntil(), query.getSet());
         watchDog.reset();
         return recordsList;
     }

@@ -8,7 +8,7 @@ import se.kb.oai.pmh.RecordsList;
 /**
  * Created by Simo on 14-2-27.
  */
-class IterateRecords implements ListProcessor {
+class IterateRecords implements ListProcessor<RecordsList> {
     private final RecordProcessor recordProcessor;
 
     public IterateRecords(RecordProcessor recordProcessor) {

@@ -6,12 +6,12 @@ import se.kb.oai.pmh.RecordsList;
 /**
  * Created by Simo on 14-2-11.
  */
-public class EmptyListProcessor implements ListProcessor {
-    public void processListBegin(RecordsList recordsList) {
+public class EmptyListProcessor<T> implements ListProcessor<T> {
+    public void processListBegin(T recordsList) {
 
     }
 
-    public void processListEnd(RecordsList recordsList) {
+    public void processListEnd(T recordsList) {
 
     }
 

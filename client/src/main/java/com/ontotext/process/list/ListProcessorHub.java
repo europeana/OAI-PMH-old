@@ -15,7 +15,7 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-2-27.
  */
-public class ListProcessorHub implements ListProcessor {
+public class ListProcessorHub<T> implements ListProcessor<T> {
     
     private static final Log LOG = LogFactory.getLog(ListProcessor.class);
     private static final int MAX_PROCESSORS = 100;
@@ -30,13 +30,13 @@ public class ListProcessorHub implements ListProcessor {
         listProcessors.add(new IterateRecords(new RecordProcessorHub(recordProcessors)));
     }
 
-    public void processListBegin(RecordsList recordsList) {
+    public void processListBegin(T recordsList) {
         for (ListProcessor processor : listProcessors) {
             processor.processListBegin(recordsList);
         }
     }
 
-    public void processListEnd(RecordsList recordsList) {
+    public void processListEnd(T recordsList) {
         for (ListProcessor processor : listProcessors) {
             processor.processListEnd(recordsList);
         }

@@ -23,7 +23,7 @@ import static com.ontotext.helper.Oai4jUtil.getId;
 /**
  * Created by Simo on 14-3-12.
  */
-public class OwlimUpdater implements RecordProcessor, ListProcessor {
+public class OwlimUpdater implements RecordProcessor, ListProcessor<RecordsList> {
 
     private static Logger LOG = LogManager.getLogger(OwlimUpdater.class);
 

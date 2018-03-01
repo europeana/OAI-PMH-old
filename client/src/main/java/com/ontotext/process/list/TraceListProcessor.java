@@ -11,7 +11,7 @@ import java.util.Properties;
  * If enabled in the client.properties this logs 1 line after every page load
  * Created by Simo on 14-1-30.
  */
-public class TraceListProcessor implements ListProcessor {
+public class TraceListProcessor implements ListProcessor<RecordsList> {
     private static final Log log = LogFactory.getLog(TraceListProcessor.class);
 
     long page;

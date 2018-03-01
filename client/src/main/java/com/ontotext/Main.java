@@ -1,16 +1,20 @@
 package com.ontotext;
 
 import com.ontotext.helper.Util;
+import com.ontotext.process.ListProcessor;
+import com.ontotext.process.identifier.EmptyHeaderProcessor;
+import com.ontotext.process.list.CountListProcessor;
+import com.ontotext.process.list.EmptyListProcessor;
 import com.ontotext.process.list.ListProcessorHub;
 import com.ontotext.process.record.EmptyRecordProcessor;
+import com.ontotext.query.BaseListQuery;
+import com.ontotext.query.QueryListIdentifiers;
 import com.ontotext.query.QueryListRecords;
-import com.ontotext.walk.ListRecordsWalker;
-import com.ontotext.walk.Navigator;
-import com.ontotext.walk.PageCountNavigator;
-import com.ontotext.walk.StandardNavigator;
+import com.ontotext.walk.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import se.kb.oai.pmh.IdentifiersList;
 import se.kb.oai.pmh.OaiPmhServer;
 import se.kb.oai.pmh.RecordsList;
 
@@ -23,6 +27,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -37,17 +42,32 @@ public class Main implements Runnable {
 
     private static final Logger LOG = LogManager.getLogger(Main.class);
 
-    private QueryListRecords query;
+    private List<BaseListQuery> query = new ArrayList<>();
     private OaiPmhServer server;
-    private ListProcessorHub listProcessor;
+    private ListProcessor<?> listProcessor;
     private int numPages;
+    private boolean listIdentifiers;
 
     public Main(Properties properties) {
-        query = QueryListRecords.load(properties);
+        this.listIdentifiers = Boolean.valueOf(properties.getProperty("verb", "listRecords").equals("listIdentifiers"));
+        init(properties);
+    }
+
+    private void init(Properties properties) {
         String serverUrl = properties.getProperty("server", "http://localhost:8080/oaicat/OAIHandler");
         server = new OaiPmhServer(serverUrl);
-        listProcessor = ListProcessorHub.load(properties);
         numPages = Integer.parseInt(properties.getProperty("numPages", "0"));
+
+        if (listIdentifiers) {
+            query.addAll(QueryListIdentifiers.loadMultiple(properties));
+            listProcessor = new CountListProcessor();
+        } else {
+            BaseListQuery q = QueryListRecords.load(properties);
+            if (q != null) {
+                query.add(q);
+            }
+            listProcessor = ListProcessorHub.load(properties);
+        }
     }
 
 
@@ -60,8 +80,43 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
+        if (listIdentifiers) {
+            runListIdentifiers();
+        } else {
+            runListRecords();
+        }
+    }
+
+    private void runListIdentifiers() {
+        Navigator<IdentifiersList> navigator = new StandardNavigator<>();
+        try {
+            registerMBean(navigator);
+        } catch (OperationsException | MBeanException e) {
+            LOG.error(e);
+        }
+        if (query != null) {
+            runListIdentifiersQuery(navigator);
+        }
+    }
+
+    private void runListIdentifiersQuery(Navigator<IdentifiersList> navigator) {
+        for (BaseListQuery q : query) {
+            ListIdentifiersWalker walker = new ListIdentifiersWalker(
+                    server, new EmptyHeaderProcessor(), (ListProcessor<IdentifiersList>) listProcessor, (QueryListIdentifiers) q, navigator);
+            LOG.info("Single list identifiers query: {}", q);
+            long start = System.currentTimeMillis();
+            try {
+                walker.run();
+            } finally {
+                LOG.info("Query execution time: {}", String.valueOf(System.currentTimeMillis() - start));
+                listProcessor.processListFinish();
+            }
+        }
+    }
+
+    private void runListRecords() {
         Navigator<RecordsList> navigator = (numPages == 0)
-                ? new StandardNavigator()
+                ? new StandardNavigator<RecordsList>()
                 : new PageCountNavigator(numPages);
         try {
             registerMBean(navigator);
@@ -69,7 +124,7 @@ public class Main implements Runnable {
             LOG.error(e);
         }
 
-        if (query != null) {
+        if (query != null && !query.isEmpty()) {
             run1Query(navigator);
         }
         File setsFile = new File("sets.txt");
@@ -100,7 +155,7 @@ public class Main implements Runnable {
 
     public void run1Query(Navigator<RecordsList> navigator) {
         ListRecordsWalker walker = new ListRecordsWalker(
-                server, new EmptyRecordProcessor(), listProcessor, query, navigator);
+                server, new EmptyRecordProcessor(), listProcessor, (QueryListRecords) query.get(0), navigator);
         LOG.info("Single query: {}", query);
         try {
             walker.run();

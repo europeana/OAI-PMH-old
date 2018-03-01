@@ -11,7 +11,7 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-2-11.
  */
-public class TimeMeasureProcessor implements ListProcessor {
+public class TimeMeasureProcessor implements ListProcessor<RecordsList> {
 
     private static final Logger LOG = LogManager.getLogger(TimeMeasureProcessor.class);
 

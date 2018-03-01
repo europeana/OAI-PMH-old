@@ -5,21 +5,14 @@ import java.util.Properties;
 /**
  * Created by Simo on 14-1-30.
  */
-public final class QueryListRecords {
-    public final String prefix;
-    public final String from;
-    public final String until;
-    public final String set;
+public final class QueryListRecords extends BaseListQuery {
 
     public QueryListRecords(String from, String until, String set) {
         this(from, until, set, "edm");
-
     }
+
     public QueryListRecords(String from, String until, String set, String prefix) {
-        this.from = from;
-        this.until = until;
-        this.set = set;
-        this.prefix = prefix;
+        super(from, until, set, prefix);
     }
 
     public static QueryListRecords load(Properties properties) {
@@ -33,10 +26,6 @@ public final class QueryListRecords {
 
         String prefix = properties.getProperty("QueryListRecords.prefix", "edm");
         return new QueryListRecords(from, until, set, prefix);
-    }
-
-    public String toString() {
-        return "Set: " + set + ", from: " + from + ", until: " + until;
     }
 
 }
