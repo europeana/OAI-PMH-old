@@ -16,7 +16,7 @@
                 <tr valign="top">
                     <td>
                         <h2>OAI Identify Request Form</h2>
-                        <form class="nospace" action="/oaicat/OAIHandler" method="GET">
+                        <form class="nospace" action="https://api.europeana.eu/oai/record" method="GET">
                             <input type="hidden" name="verb" value="Identify">
                             <table width="100%" border="0" cellspacing="0" cellpadding="4">
                                 <tr valign="top">
