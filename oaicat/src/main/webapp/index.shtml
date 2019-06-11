@@ -13,7 +13,7 @@
 
             <hr>
             <h1>This OAI-PMH server is deprecated and will be shutdown soon!</h1>
-            <h1>Please use our new endpoint <a href="https://api.europeana.eu/oai/record">https://api.europeana.eu/oai/record</a></h1>
+            <h1>Please use our new endpoint <a href="https://api.europeana.eu/oai/record">https://api.europeana.eu/oai/record?verb=Identify</a></h1>
             <hr>
 
             <h2>Europeana OAI-PMH Server</h2>
@@ -29,7 +29,7 @@
                 through the protocol request forms listed below.
             </p>
             <h2>Protocol Request Forms</h2>
-            <h3>All forms below now use our new OAI-PMH endpoint: <a href="https://api.europeana.eu/oai/record">https://api.europeana.eu/oai/record</a></h3>
+            <h3>All forms below now use our new OAI-PMH endpoint: <a href="https://api.europeana.eu/oai/record">https://api.europeana.eu/oai/record?verb=Identify</a></h3>
             <ol>
                 <li>
                     <a href="identify.shtml">Identify</a>
