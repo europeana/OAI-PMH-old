@@ -17,12 +17,12 @@
                 <tr valign="top">
                     <td>
                         <h2>OAI GetRecord Request Form</h2>
-                        <form class="nospace" action="/oaicat/OAIHandler" method="GET">
+                        <form class="nospace" action="https://api.europeana.eu/oai/record" method="GET">
                             <input type="hidden" name="verb" value="GetRecord">
                             <table width="100%" border="0" cellspacing="0" cellpadding="4">
                                 <tr valign="top">
                                     <td width="150"><strong>identifier:</strong></td>
-                                    <td><input type="text" name="identifier"></td>
+                                    <td><input type="text" name="identifier" required></td>
                                 </tr>
                                 <tr valign="top">
                                     <td width="150"><strong>metadataPrefix:</strong></td>

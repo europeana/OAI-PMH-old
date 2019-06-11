@@ -17,7 +17,7 @@
                 <tr valign="top">
                     <td>
                         <h2>OAI ListIdentifiers Request Form</h2>
-                        <form class="nospace" action="/oaicat/OAIHandler" method="GET">
+                        <form id="listIdentifiers" class="nospace" action="https://api.europeana.eu/oai/record" method="GET">
                             <input type="hidden" name="verb" value="ListIdentifiers">
                             <table width="100%" border="0" cellspacing="0" cellpadding="4">
                                 <tr valign="top">
@@ -47,5 +47,22 @@
         </div>
         <!--#include virtual="footer.shtml" -->
     </div>
+
+<script>
+    var myForm = document.getElementById('listIdentifiers');
+
+    myForm.addEventListener('submit', function () {
+        var allInputs = myForm.getElementsByTagName('input');
+
+        for (var i = 0; i < allInputs.length; i++) {
+            var input = allInputs[i];
+
+            if (input.name && !input.value) {
+                input.name = '';
+            }
+        }
+    });
+</script>
+
 </body>
 </html>
